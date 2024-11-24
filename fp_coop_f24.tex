@@ -1,0 +1,175 @@
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Short Sectioned Assignment
+% LaTeX Template
+% Version 1.0 (5/5/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% Original author:
+% Frits Wenneker (http://www.howtotex.com)
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%   PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass[paper=a4, fontsize=11pt]{scrartcl} % A4 paper and 11pt font size
+
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+\usepackage{palatino} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage{multicol,lastpage,fullpage,framed,fancybox,enumerate,tikz}
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage{mathtools}
+%
+%
+%
+%   A T T E N T I O N ! ! !
+%
+%   SET YOUR GRAPHICS FOLDER IN THE LINE BELOW
+%
+\graphicspath{ {.} }
+\usepackage{sectsty} % Allows customizing section commands
+\allsectionsfont{\centering \normalfont\scshape} % Make all sections centered, the default font and small caps
+
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancy plain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead[L]{\textsc{CSEN 5830}}
+\fancyhead[R]{\textsc{Homework #3}} % No page header - if you want one, create it in the same way as the footers below
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[C]{- \thepage -} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0.5pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+
+\fancypagestyle{noheader}{    %create style that allows to skip header manually on pages with new section
+    \fancyhead{}
+    \renewcommand{\headrulewidth}{0pt}
+}
+
+\numberwithin{equation}{section} % Number equations within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{figure}{section} % Number figures within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+\numberwithin{table}{section} % Number tables within sections (i.e. 1.1, 1.2, 2.1, 2.2 instead of 1, 2, 3, 4)
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs - comment this line for an assignment with lots of text
+
+%----------------------------------------------------------------------------------------
+%   TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} % Create horizontal rule command with 1 argument of height
+
+\title{
+\normalfont \LARGE
+\textsc{University of Colorado at Boulder} \\ [25pt] % Your university, school and/or department name(s)
+\textsc{ASEN 5044 - Statistical State Estimation for Dynamical Systems} \\ [20pt]
+\textsc{Fall 2024} \\ [20pt]
+\textsc{Professor: Dr. Nisar Ahmed} \\ [12pt]
+\horrule{1pt} \\[0.4cm] % Thin top horizontal rule
+\huge Final Project \\ % The assignment title
+\huge (Cooperative Air-Ground Robot Localization) \\ 
+\horrule{1pt} \\[0.6cm] % Thick bottom horizontal rule
+}
+
+\author{
+  \textsc{ Team Members:} \\ [4 mm]
+  \textsc{ Nicholas Martinez}\\[2mm]
+  \textsc{ Whit Whittall } \\[2mm]
+  \textsc{ Michael Bernabei}\\[2mm]
+}
+
+\date{\normalsize\today} % Today's date or a custom date
+
+\begin{document}
+
+\maketitle % Print the title
+\thispagestyle{empty} %make title page header empty
+\newpage
+
+
+%----------------------------------------------------------------------------------------
+%   PROBLEM SECTION
+%----------------------------------------------------------------------------------------
+%
+
+\textbf{\\ Part I: Deterministic System Analysis }
+\begin{framed}
+\textbf{Part 1.} \\
+
+We are given the Equation Of Motion (EOM) for the Unmanned Ground Vehicle (UGV).  The EOM is,
+
+\begin{align*}
+    \dot{\xi_g} &= v_g \cos{\theta_g} + \Tilde{w}_{x,g} \\
+    \dot{\eta_g} &= v_g \sin{\theta_g} + \Tilde{w}_{y,g} \\
+    \dot{\theta_g} &= \frac{v_g}{L}\tan{\phi_g}  + \Tilde{w}_{\omega,g} \\
+\end{align*}
+
+and for the Unmanned Aerial Vehicle (UAV) we have the following EOM,
+
+\begin{align*}
+    \dot{\xi_a} &= v_a \cos{\theta_a} + \Tilde{w}_{x,a} \\
+    \dot{\eta_a} &= v_a \sin{\theta_a} + \Tilde{w}_{y,a} \\
+    \dot{\theta_a} &= \frac{v_a}{L}\tan{\phi_a}  + \Tilde{w}_{\omega,a} \\
+\end{align*}
+
+where $\Tilde{w}_a = [ \Tilde{w}_{x,a},  \Tilde{w}_{y,a},  \Tilde{w}_{\omega,a}]^T$ and $\Tilde{w}_g = [ \Tilde{w}_{x,g},  \Tilde{w}_{y,g},  \Tilde{w}_{\omega,g}]^T$ are the process noise for the UAV And UGV respectively.  We are also given the following sensing model,
+
+\begin{align*}
+y(t) &=  
+\begin{bmatrix} \arctan{(\frac{\eta_a - \eta_g}{\xi_a - \xi_g}}) - \theta_g   \\ 
+                \sqrt{ (\eta_a - \eta_g)^2 + (\xi_g - \xi_gt)^2}  \\
+                \arctan{(\frac{\eta_g - \eta_a}{\xi_g - \xi_a})} - \theta_a \\
+                \xi_a \\
+                \eta_a
+\end{bmatrix}  + \Tilde{\bold{v}}(t) \\
+\end{align*}
+
+where $\Tilde{\bold{v}}(t) \in \mathbb{R}^5$ is the sensor error vector.  Finally, we are given the combined states, control inputs, and disturbance inputs as,
+
+\begin{align*}
+    \bold{x}(t) &= [ \xi_g \ \ \ \eta_g \ \ \ \theta_g \ \ \ \xi_a \ \ \ \eta_a \ \ \ \theta_a ] ^T ,\\
+    \bold{u}(t) &= [ \bold{u}_g \ \ \bold{u}_a ]^T ,\\
+    \bold{\Tilde{w}}(t) &= [\bold{\Tilde{w}_g \ \ \bold{\Tilde{w}}_a}]^T \\
+\end{align*}
+
+The state is $x = [\xi_g \ \  \eta_g \ \  \theta_g \ \  \xi_a \ \  \eta_a \ \ \theta_a ]^T = [ x_1 \ \ x_2 \  x_3 \ \ x_4 \ \ x_5 \ \ x_6 ]^T$ and our inputs $u = [ \bold{u}_g \ \ \bold{u}_a ]^T = [v_g \ \ \phi_g \ \ v_a \ \ \phi_a]^T = [u_1 \ \ u_2 \ \ u_3 \ \ u_4 ]^T$.  We then have the following,
+
+\begin{align*}
+    \dot{x} &= \begin{bmatrix}
+           \dot{\xi}_g \\
+           \dot{\eta}_g \\
+           \dot{\theta}_g \\
+           \dot{\xi}_a \\
+           \dot{\eta}_a \\
+           \dot{\theta}_a
+         \end{bmatrix} 
+         =  \begin{bmatrix}
+           \dot{x}_1 \\
+           \dot{x}_2 \\
+           \dot{x}_3 \\
+           \dot{x}_4 \\
+           \dot{x}_5 \\
+           \dot{x}_6
+         \end{bmatrix} 
+\end{align*}
+
+\end{framed}
+
+
+\textbf{\\ Part II: Stochastic Nonlinear Filtering }
+\begin{framed}
+   
+\end{framed}
+
+
+\end{document}
