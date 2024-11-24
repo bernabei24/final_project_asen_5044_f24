@@ -127,7 +127,7 @@ where $\Tilde{w}_a = [ \Tilde{w}_{x,a},  \Tilde{w}_{y,a},  \Tilde{w}_{\omega,a}]
 \begin{align*}
 y(t) &=  
 \begin{bmatrix} \arctan{(\frac{\eta_a - \eta_g}{\xi_a - \xi_g}}) - \theta_g   \\ 
-                \sqrt{ (\eta_a - \eta_g)^2 + (\xi_g - \xi_gt)^2}  \\
+                \sqrt{  (\xi_g - \xi_a)^2 + (\eta_g - \eta_a)^2}  \\
                 \arctan{(\frac{\eta_g - \eta_a}{\xi_g - \xi_a})} - \theta_a \\
                 \xi_a \\
                 \eta_a
@@ -142,7 +142,7 @@ where $\Tilde{\bold{v}}(t) \in \mathbb{R}^5$ is the sensor error vector.  Finall
     \bold{\Tilde{w}}(t) &= [\bold{\Tilde{w}_g \ \ \bold{\Tilde{w}}_a}]^T \\
 \end{align*}
 
-The state is $x = [\xi_g \ \  \eta_g \ \  \theta_g \ \  \xi_a \ \  \eta_a \ \ \theta_a ]^T = [ x_1 \ \ x_2 \  x_3 \ \ x_4 \ \ x_5 \ \ x_6 ]^T$ and our inputs $u = [ \bold{u}_g \ \ \bold{u}_a ]^T = [v_g \ \ \phi_g \ \ v_a \ \ \phi_a]^T = [u_1 \ \ u_2 \ \ u_3 \ \ u_4 ]^T$.  We then have the following,
+The state is $x = [\xi_g \ \  \eta_g \ \  \theta_g \ \  \xi_a \ \  \eta_a \ \ \theta_a ]^T = [ x_1 \ \ x_2 \  x_3 \ \ x_4 \ \ x_5 \ \ x_6 ]^T$ and our inputs $u = [ \bold{u}_g \ \ \bold{u}_a ]^T = [v_g \ \ \phi_g \ \ v_a \ \ \phi_a]^T = [u_1 \ \ u_2 \ \ u_3 \ \ u_4 ]^T$.  We then have the following after substituting in our state and input variables,
 
 \begin{align*}
     \dot{x} &= \begin{bmatrix}
@@ -161,7 +161,150 @@ The state is $x = [\xi_g \ \  \eta_g \ \  \theta_g \ \  \xi_a \ \  \eta_a \ \ \t
            \dot{x}_5 \\
            \dot{x}_6
          \end{bmatrix} 
+         = \begin{bmatrix}
+           \mathcal{F}_1(x,u) \\
+           \mathcal{F}_2(x,u) \\
+           \mathcal{F}_3(x,u) \\
+           \mathcal{F}_4(x,u) \\
+           \mathcal{F}_5(x,u) \\
+           \mathcal{F}_6(x,u) \\
+         \end{bmatrix}
+         = \begin{bmatrix}
+           u_1 \cos{x_3} \\
+           u_1 \sin{x_3} \\
+           \frac{u_1}{L} \tan{u_2} \\
+           u_3 \cos{x_6} \\
+           u_3 \sin{x_6} \\
+           \frac{u_3}{L} \tan{u_4} \\
+         \end{bmatrix} 
 \end{align*}
+
+
+\begin{align*}
+  y &= \begin{bmatrix} \arctan{(\frac{x_5 - x_2}{x_4 - x_1}}) - x_3   \\ 
+                \sqrt{ (x_1 - x_4)^2 + (x_2 - x_5)^2}  \\
+                \arctan{(\frac{x_2 - x_5}{x_1 - x_4})} - x_6 \\
+                x_4 \\
+                x_5
+  \end{bmatrix}  \\
+\end{align*}
+
+We now need to compute the partials with respect to x,
+
+\[ \begin{matrix*}[l]
+\frac{\partial\mathcal{F}_1}{\partial x_1} = 0 &
+\frac{\partial\mathcal{F}_2}{\partial x_1} = 0 & 
+\frac{\partial\mathcal{F}_3}{\partial x_1} = 0 & 
+\frac{\partial\mathcal{F}_4}{\partial x_1} = 0 & 
+\frac{\partial\mathcal{F}_5}{\partial x_1} = 0 &  
+\frac{\partial\mathcal{F}_6}{\partial x_1} = 0 & \\ \\
+\frac{\partial\mathcal{F}_1}{\partial x_2} = 0 &
+\frac{\partial\mathcal{F}_2}{\partial x_2} = 0 & 
+\frac{\partial\mathcal{F}_3}{\partial x_2} = 0 & 
+\frac{\partial\mathcal{F}_4}{\partial x_2} = 0 & 
+\frac{\partial\mathcal{F}_5}{\partial x_2} = 0 &  
+\frac{\partial\mathcal{F}_6}{\partial x_2} = 0 & \\ \\
+\frac{\partial\mathcal{F}_1}{\partial x_3} = -u_1\sin{x_3} &
+\frac{\partial\mathcal{F}_2}{\partial x_3} = u_1\cos{x_3} & 
+\frac{\partial\mathcal{F}_3}{\partial x_3} = 0 & 
+\frac{\partial\mathcal{F}_4}{\partial x_3} = 0 & 
+\frac{\partial\mathcal{F}_5}{\partial x_3} = 0 &  
+\frac{\partial\mathcal{F}_6}{\partial x_3} = 0 & \\ \\
+\frac{\partial\mathcal{F}_1}{\partial x_4} = 0 &
+\frac{\partial\mathcal{F}_2}{\partial x_4} = 0 & 
+\frac{\partial\mathcal{F}_3}{\partial x_4} = 0 & 
+\frac{\partial\mathcal{F}_4}{\partial x_4} = 0 & 
+\frac{\partial\mathcal{F}_5}{\partial x_4} = 0 &  
+\frac{\partial\mathcal{F}_6}{\partial x_4} = 0 & \\ \\
+\frac{\partial\mathcal{F}_1}{\partial x_5} = 0 &
+\frac{\partial\mathcal{F}_2}{\partial x_5} = 0 & 
+\frac{\partial\mathcal{F}_3}{\partial x_5} = 0 & 
+\frac{\partial\mathcal{F}_4}{\partial x_5} = 0 & 
+\frac{\partial\mathcal{F}_5}{\partial x_5} = 0 &  
+\frac{\partial\mathcal{F}_6}{\partial x_5} = 0 & \\ \\
+\frac{\partial\mathcal{F}_1}{\partial x_6} = 0 &
+\frac{\partial\mathcal{F}_2}{\partial x_6} = 0 & 
+\frac{\partial\mathcal{F}_3}{\partial x_6} = 0 & 
+\frac{\partial\mathcal{F}_4}{\partial x_6} = -u_3\sin{x_6} & 
+\frac{\partial\mathcal{F}_5}{\partial x_6} = u_3\cos{x_6} &  
+\frac{\partial\mathcal{F}_6}{\partial x_6} = 0 & \\ \\
+\end{matrix*}\]
+
+and with respect to u,
+
+\[ \begin{matrix*}[l]
+\frac{\partial\mathcal{F}_1}{\partial u_1} = \cos{x_3} &
+\frac{\partial\mathcal{F}_2}{\partial u_1} = \sin{x_3} & 
+\frac{\partial\mathcal{F}_3}{\partial u_1} = \frac{\tan{u_2}}{L} & 
+\frac{\partial\mathcal{F}_4}{\partial u_1} = 0 & 
+\frac{\partial\mathcal{F}_5}{\partial u_1} = 0 &  
+\frac{\partial\mathcal{F}_6}{\partial u_1} = 0 & \\ \\
+\frac{\partial\mathcal{F}_1}{\partial u_2} = 0 &
+\frac{\partial\mathcal{F}_2}{\partial u_2} = 0 & 
+\frac{\partial\mathcal{F}_3}{\partial u_2} = \frac{u_1}{L}\sec^2{u_2} & 
+\frac{\partial\mathcal{F}_4}{\partial u_2} = 0 & 
+\frac{\partial\mathcal{F}_5}{\partial u_2} = 0 &  
+\frac{\partial\mathcal{F}_6}{\partial u_2} = 0 & \\ \\
+\frac{\partial\mathcal{F}_1}{\partial u_3} = 0 &
+\frac{\partial\mathcal{F}_2}{\partial u_3} = 0 & 
+\frac{\partial\mathcal{F}_3}{\partial u_3} = 0 & 
+\frac{\partial\mathcal{F}_4}{\partial u_3} = \cos{x_6} & 
+\frac{\partial\mathcal{F}_5}{\partial u_3} = \sin{x_6} &  
+\frac{\partial\mathcal{F}_6}{\partial u_3} = \frac{\tan{u_4}}{L} & \\ \\
+\frac{\partial\mathcal{F}_1}{\partial u_4} = 0 &
+\frac{\partial\mathcal{F}_2}{\partial u_4} = 0 & 
+\frac{\partial\mathcal{F}_3}{\partial u_4} = 0 & 
+\frac{\partial\mathcal{F}_4}{\partial u_4} = 0 & 
+\frac{\partial\mathcal{F}_5}{\partial u_4} = 0 &  
+\frac{\partial\mathcal{F}_6}{\partial u_4} = \frac{u_3}{L}\sec^2{u_4} & \\ \\
+\end{matrix*}\]
+
+
+% \begin{aligned}
+% \frac{\partial\mathcal{F}_1}{\partial x_1} = 0; \ \ 
+% \frac{\partial\mathcal{F}_2}{\partial x_1} = 0; \ \  
+% \frac{\partial\mathcal{F}_3}{\partial x_1} = 0; \ \  
+% \frac{\partial\mathcal{F}_4}{\partial x_1} = 0; \ \  
+% \frac{\partial\mathcal{F}_5}{\partial x_1} = 0; \ \  
+% \frac{\partial\mathcal{F}_6}{\partial x_1} = 0; \ \ 
+% \\
+% \frac{\partial\mathcal{F}_1}{\partial x_2} = 0; \ \ 
+% \frac{\partial\mathcal{F}_2}{\partial x_2} = 0; \ \  
+% \frac{\partial\mathcal{F}_3}{\partial x_2} = 0; \ \  
+% \frac{\partial\mathcal{F}_4}{\partial x_2} = 0; \ \  
+% \frac{\partial\mathcal{F}_5}{\partial x_2} = 0; \ \  
+% \frac{\partial\mathcal{F}_6}{\partial x_2} = 0; \ \ 
+% \\
+% \frac{\partial\mathcal{F}_1}{\partial x_3} = -u_1\sin{x_3}; \ \ 
+% \frac{\partial\mathcal{F}_2}{\partial x_3} = u_1\cos{x_3}; \ \  
+% \frac{\partial\mathcal{F}_3}{\partial x_3} = 0; \ \  
+% \frac{\partial\mathcal{F}_4}{\partial x_3} = 0; \ \  
+% \frac{\partial\mathcal{F}_5}{\partial x_3} = 0; \ \  
+% \frac{\partial\mathcal{F}_6}{\partial x_3} = 0; \ \ 
+% \\
+% \frac{\partial\mathcal{F}_1}{\partial x_4} = 0; \ \ 
+% \frac{\partial\mathcal{F}_2}{\partial x_4} = 0; \ \  
+% \frac{\partial\mathcal{F}_3}{\partial x_4} = 0; \ \  
+% \frac{\partial\mathcal{F}_4}{\partial x_4} = 0; \ \  
+% \frac{\partial\mathcal{F}_5}{\partial x_4} = 0; \ \  
+% \frac{\partial\mathcal{F}_6}{\partial x_4} = 0; \ \ 
+% \\
+% \frac{\partial\mathcal{F}_1}{\partial x_5} = 0; \ \ 
+% \frac{\partial\mathcal{F}_2}{\partial x_5} = 0; \ \  
+% \frac{\partial\mathcal{F}_3}{\partial x_5} = 0; \ \  
+% \frac{\partial\mathcal{F}_4}{\partial x_5} = 0; \ \  
+% \frac{\partial\mathcal{F}_5}{\partial x_5} = 0; \ \  
+% \frac{\partial\mathcal{F}_6}{\partial x_5} = 0; \ \ 
+% \\
+% \frac{\partial\mathcal{F}_1}{\partial x_6} = 0; \ \ 
+% \frac{\partial\mathcal{F}_2}{\partial x_6} = 0; \ \  
+% \frac{\partial\mathcal{F}_3}{\partial x_6} = 0; \ \  
+% \frac{\partial\mathcal{F}_4}{\partial x_6} = 0; \ \  
+% \frac{\partial\mathcal{F}_5}{\partial x_6} = 0; \ \  
+% \frac{\partial\mathcal{F}_6}{\partial x_6} = 0; \ \ 
+% \\
+% \end{align*}
+
 
 \end{framed}
 
