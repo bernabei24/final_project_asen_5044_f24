@@ -186,10 +186,17 @@ The state is $x = [\xi_g \ \  \eta_g \ \  \theta_g \ \  \xi_a \ \  \eta_a \ \ \t
                 \arctan{(\frac{x_2 - x_5}{x_1 - x_4})} - x_6 \\
                 x_4 \\
                 x_5
-  \end{bmatrix}  \\
+  \end{bmatrix} 
+            = \begin{bmatrix}
+           \mathcal{H}_1(x,u) \\
+           \mathcal{H}_2(x,u) \\
+           \mathcal{H}_3(x,u) \\
+           \mathcal{H}_4(x,u) \\
+           \mathcal{H}_5(x,u) \\
+         \end{bmatrix}\\
 \end{align*}
 
-We now need to compute the partials with respect to x,
+We now need to compute the partials of  $\mathcal{F}_{1\dots6}$ with respect to x,
 
 \[ \begin{matrix*}[l]
 \frac{\partial\mathcal{F}_1}{\partial x_1} = 0 &
@@ -259,51 +266,76 @@ and with respect to u,
 \frac{\partial\mathcal{F}_6}{\partial u_4} = \frac{u_3}{L}\sec^2{u_4} & \\ \\
 \end{matrix*}\]
 
+finally we compute $\mathcal{H}_{1 \dots 5}$ with respect to x.  In the following we show the two most complex partial derivative computations. The remaining partials were computed using similar techniques and therefore we omit them for brevity.  
 
-% \begin{aligned}
-% \frac{\partial\mathcal{F}_1}{\partial x_1} = 0; \ \ 
-% \frac{\partial\mathcal{F}_2}{\partial x_1} = 0; \ \  
-% \frac{\partial\mathcal{F}_3}{\partial x_1} = 0; \ \  
-% \frac{\partial\mathcal{F}_4}{\partial x_1} = 0; \ \  
-% \frac{\partial\mathcal{F}_5}{\partial x_1} = 0; \ \  
-% \frac{\partial\mathcal{F}_6}{\partial x_1} = 0; \ \ 
-% \\
-% \frac{\partial\mathcal{F}_1}{\partial x_2} = 0; \ \ 
-% \frac{\partial\mathcal{F}_2}{\partial x_2} = 0; \ \  
-% \frac{\partial\mathcal{F}_3}{\partial x_2} = 0; \ \  
-% \frac{\partial\mathcal{F}_4}{\partial x_2} = 0; \ \  
-% \frac{\partial\mathcal{F}_5}{\partial x_2} = 0; \ \  
-% \frac{\partial\mathcal{F}_6}{\partial x_2} = 0; \ \ 
-% \\
-% \frac{\partial\mathcal{F}_1}{\partial x_3} = -u_1\sin{x_3}; \ \ 
-% \frac{\partial\mathcal{F}_2}{\partial x_3} = u_1\cos{x_3}; \ \  
-% \frac{\partial\mathcal{F}_3}{\partial x_3} = 0; \ \  
-% \frac{\partial\mathcal{F}_4}{\partial x_3} = 0; \ \  
-% \frac{\partial\mathcal{F}_5}{\partial x_3} = 0; \ \  
-% \frac{\partial\mathcal{F}_6}{\partial x_3} = 0; \ \ 
-% \\
-% \frac{\partial\mathcal{F}_1}{\partial x_4} = 0; \ \ 
-% \frac{\partial\mathcal{F}_2}{\partial x_4} = 0; \ \  
-% \frac{\partial\mathcal{F}_3}{\partial x_4} = 0; \ \  
-% \frac{\partial\mathcal{F}_4}{\partial x_4} = 0; \ \  
-% \frac{\partial\mathcal{F}_5}{\partial x_4} = 0; \ \  
-% \frac{\partial\mathcal{F}_6}{\partial x_4} = 0; \ \ 
-% \\
-% \frac{\partial\mathcal{F}_1}{\partial x_5} = 0; \ \ 
-% \frac{\partial\mathcal{F}_2}{\partial x_5} = 0; \ \  
-% \frac{\partial\mathcal{F}_3}{\partial x_5} = 0; \ \  
-% \frac{\partial\mathcal{F}_4}{\partial x_5} = 0; \ \  
-% \frac{\partial\mathcal{F}_5}{\partial x_5} = 0; \ \  
-% \frac{\partial\mathcal{F}_6}{\partial x_5} = 0; \ \ 
-% \\
-% \frac{\partial\mathcal{F}_1}{\partial x_6} = 0; \ \ 
-% \frac{\partial\mathcal{F}_2}{\partial x_6} = 0; \ \  
-% \frac{\partial\mathcal{F}_3}{\partial x_6} = 0; \ \  
-% \frac{\partial\mathcal{F}_4}{\partial x_6} = 0; \ \  
-% \frac{\partial\mathcal{F}_5}{\partial x_6} = 0; \ \  
-% \frac{\partial\mathcal{F}_6}{\partial x_6} = 0; \ \ 
-% \\
-% \end{align*}
+Utilize the chain rule with $u=(\frac{x_5 - x_2}{x_4 - x_1})$, then, 
+\\
+\begin{align*}
+    \frac{\partial{\mathcal{H}_1}}{\partial{x_1}} &= \frac{\partial{\mathcal{H}_1}}{\partial{u}} \times \frac{\partial{u}}{\partial{x_1}} \\
+    &= \bigg( \frac{1}{(\frac{x_5 - x_2}{x_4 - x_1})^2 + 1} \bigg) \times \bigg(  \frac{0 \times (x_4-x_1) - (x_5-x_2)\times -1 }{(x_4 - x_1)^2}  \bigg) \\
+    &= \bigg( \frac{1}{(\frac{x_5 - x_2}{x_4 - x_1})^2 + 1} \bigg) \times \bigg(  \frac{(x_5-x_2)}{(x_4 - x_1)^2}  \bigg) \\
+    &= \bigg( \frac{1}{\frac{(x_5 - x_2)^2}{(x_4 - x_1)^2} + 1} \bigg) \times \bigg(  \frac{(x_5-x_2)}{(x_4 - x_1)^2}  \bigg) \\
+    &= \bigg( \frac{1}{\frac{(x_5 - x_2)^2 + (x_4-x_1)^2}{(x_4 - x_1)^2}} \bigg) \times \bigg(  \frac{(x_5-x_2)}{(x_4 - x_1)^2}  \bigg) \\
+    &= \bigg( \frac{(x_4 - x_1)^2}{(x_5 - x_2)^2 + (x_4-x_1)^2} \bigg) \times \bigg(  \frac{(x_5-x_2)}{(x_4 - x_1)^2}  \bigg) \\
+    &= \frac{x_5-x_2}{(x_5 - x_2)^2 + (x_4-x_1)^2}
+\end{align*}
+\\
+and we show the case when the partial we are computing is in the numerator,
+\\
+\begin{align*}
+    \frac{\partial{\mathcal{H}_1}}{\partial{x_2}} &= \frac{\partial{\mathcal{H}_1}}{\partial{u}} \times \frac{\partial{u}}{\partial{x_2}} \\
+    &= \bigg( \frac{1}{(\frac{x_5 - x_2}{x_4 - x_1})^2 + 1} \bigg) \times \bigg(  \frac{-1 \times (x_4-x_1) - (x_5-x_2)\times 0 }{(x_4 - x_1)^2}  \bigg) \\
+    &= \bigg( \frac{1}{(\frac{x_5 - x_2}{x_4 - x_1})^2 + 1} \bigg) \times \bigg(  -\frac{(x_4-x_1)}{(x_4 - x_1)^2}  \bigg) \\
+    &= \bigg( \frac{1}{\frac{(x_5 - x_2)^2}{(x_4 - x_1)^2} + 1} \bigg) \times \bigg(  -\frac{(x_4-x_1)}{(x_4 - x_1)^2}  \bigg) \\
+    &= \bigg( \frac{1}{\frac{(x_5 - x_2)^2 + (x_4-x_1)^2}{(x_4 - x_1)^2}} \bigg) \times \bigg(  -\frac{(x_4-x_1)}{(x_4 - x_1)^2}  \bigg) \\
+    &= \bigg( \frac{(x_4 - x_1)^2}{(x_5 - x_2)^2 + (x_4-x_1)^2} \bigg) \times \bigg(  -\frac{(x_4-x_1)}{(x_4 - x_1)^2}  \bigg) \\
+    &= -\frac{x_4-x_1}{(x_5 - x_2)^2 + (x_4-x_1)^2}
+\end{align*}
+\\
+Now, let $u=(x_1-x_4)^2 + (x_2-x_5)^2$ , $v=(x_1-x_4)^2$, and $w=(x_1-x_4)$, then for our next complex partial we have,
+\\
+\begin{align*}
+    \frac{\partial{\mathcal{H}_1}}{\partial{x_1}} &= \frac{\partial{\mathcal{H}_1}}{\partial{u}} \times \frac{\partial{u}}{\partial{v}}\times \frac{\partial{v}}{\partial{w}} \times \frac{\partial{w}}{\partial{x_1}} \\
+    &=  \bigg( \frac{1}{2} \times \frac{1}{\sqrt{u} } \bigg) \times (1) \times \bigg( 2(w)\bigg) \times(1) \\
+    &=  \bigg( \frac{1}{2} \times \frac{1}{\sqrt{(x_1-x_4)^2+(x_2-x_5)^2} } \bigg) \times (1) \times \bigg( 2(x_1-x_4)\bigg) \times(1) \\
+    &= \frac{x_1 - x_4}{\sqrt{(x_1-x_4)^2 + (x_2-x_5)^2}}
+\end{align*}
+\\
+
+therefore we have the following Jacobians,
+
+\begin{align*}
+    \frac{\partial f}{\partial x} &= 
+    \begin{bmatrix} 0 & 0 & -u_1\sin x_3 & 0 & 0 & 0 \\ 
+                    0 & 0 & u_1\cos x_3 & 0 & 0 & 0 \\ 
+                    0 & 0 & 0 & 0 & 0 & 0 \\ 
+                    0 & 0 & 0 & 0 & 0 & u_3\sin x_6 \\ 
+                    0 & 0 & 0 & 0 & 0 & -u_3 \cos x_6 \\ 
+                    0 & 0 & 0 & 0 & 0 & 0 \end{bmatrix} \\
+    \frac{\partial f}{\partial u} &= 
+      \begin{bmatrix} \cos x_3 & 0 & 0 & 0 \\ 
+      \sin x_3 & 0 & 0 & 0 \\ 
+      \frac{1}{L} \tan u_2 & \frac{u_1}{L}\sec^2u_2 & 0 & 0 \\ 
+       0 & 0 & \cos x_6 & 0 \\ 
+       0 & 0 & \sin x_6 & 0 \\ 
+       0 & 0 & 0 & 1 
+       \end{bmatrix} \\
+    \frac{\partial h}{\partial x} &= 
+    \begin{bmatrix} \frac{x_5-x_2}{(x_4-x_1)^2+(x_2-x_5)^2} & -\frac{x_4-x_1}{(x_4-x_1)^2+(x_2-x_5)^2} & -1 & -\frac{x_5-x_2}{(x_4-x_1)^2+(x_5-x_2)^2} & \frac{x_4-x_1}{(x_4-x_1)^2+(x_5-x_2)^2} & 0 \\
+    \frac{x_1+x_4}{\sqrt{(x_1+x_4)^2+(x_2+x_5)^2}} & \frac{x_2+x_5}{\sqrt{(x_1+x_4)^2+(x_2+x_5)^2}} & 0 & \frac{x_1 + x_4}{\sqrt{(x_1+x_4)^2+(x_2+x_5)^2}} & \frac{x_2+x_5}{\sqrt{(x_1+x_4)^2+(x_2+x_5)^2}} & 0 \\ 
+    -\frac{x_2-x_5}{(x_1-x_4)^2+(x_2-x_5)^2} & \frac{x_1-x_4}{(x_1-x_4)^2+(x_2-x_5)^2} & 0 & \frac{x_2-x_5}{(x_1-x_4)^2+(x_2-x_5)^2} & 
+    -\frac{x_1-x_4}{(x_1-x_4)^2+(x_2-x_5)^2} & -1 \\
+    0 & 0 & 0 & 1 & 0 & 0 \\ 0 & 0 & 0 & 0 & 1 & 0 \end{bmatrix} \\
+    \frac{\partial h}{\partial u} &= 
+      \begin{bmatrix} 0 & 0 & 0 & 0  \\ 
+                      0 & 0 & 0 & 0  \\ 
+                      0 & 0 & 0 & 0  \\ 
+                      0 & 0 & 0 & 0  \\ 
+                      0 & 0 & 0 & 0  \\ 
+                     \end{bmatrix} \\
+\end{align*}
+
+
 
 
 \end{framed}
