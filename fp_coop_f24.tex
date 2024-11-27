@@ -119,7 +119,7 @@ and for the Unmanned Aerial Vehicle (UAV) we have the following EOM,
 \begin{align*}
     \dot{\xi_a} &= v_a \cos{\theta_a} + \Tilde{w}_{x,a} \\
     \dot{\eta_a} &= v_a \sin{\theta_a} + \Tilde{w}_{y,a} \\
-    \dot{\theta_a} &= \frac{v_a}{L}\tan{\phi_a}  + \Tilde{w}_{\omega,a} \\
+    \dot{\theta_a} &= \omega_a  + \Tilde{w}_{\omega,a} \\
 \end{align*}
 
 where $\Tilde{w}_a = [ \Tilde{w}_{x,a},  \Tilde{w}_{y,a},  \Tilde{w}_{\omega,a}]^T$ and $\Tilde{w}_g = [ \Tilde{w}_{x,g},  \Tilde{w}_{y,g},  \Tilde{w}_{\omega,g}]^T$ are the process noise for the UAV And UGV respectively.  We are also given the following sensing model,
@@ -175,7 +175,7 @@ The state is $x = [\xi_g \ \  \eta_g \ \  \theta_g \ \  \xi_a \ \  \eta_a \ \ \t
            \frac{u_1}{L} \tan{u_2} \\
            u_3 \cos{x_6} \\
            u_3 \sin{x_6} \\
-           \frac{u_3}{L} \tan{u_4} \\
+           u_4 \\
          \end{bmatrix} 
 \end{align*}
 
@@ -257,13 +257,13 @@ and with respect to u,
 \frac{\partial\mathcal{F}_3}{\partial u_3} = 0 & 
 \frac{\partial\mathcal{F}_4}{\partial u_3} = \cos{x_6} & 
 \frac{\partial\mathcal{F}_5}{\partial u_3} = \sin{x_6} &  
-\frac{\partial\mathcal{F}_6}{\partial u_3} = \frac{\tan{u_4}}{L} & \\ \\
+\frac{\partial\mathcal{F}_6}{\partial u_3} = 0 & \\ \\
 \frac{\partial\mathcal{F}_1}{\partial u_4} = 0 &
 \frac{\partial\mathcal{F}_2}{\partial u_4} = 0 & 
 \frac{\partial\mathcal{F}_3}{\partial u_4} = 0 & 
 \frac{\partial\mathcal{F}_4}{\partial u_4} = 0 & 
 \frac{\partial\mathcal{F}_5}{\partial u_4} = 0 &  
-\frac{\partial\mathcal{F}_6}{\partial u_4} = \frac{u_3}{L}\sec^2{u_4} & \\ \\
+\frac{\partial\mathcal{F}_6}{\partial u_4} = 1 & \\ \\
 \end{matrix*}\]
 
 finally we compute $\mathcal{H}_{1 \dots 5}$ with respect to x.  In the following we show the two most complex partial derivative computations. The remaining partials were computed using similar techniques and therefore we omit them for brevity.  
@@ -315,7 +315,7 @@ therefore we have the following Jacobians,
     \frac{\partial f}{\partial u} &= 
       \begin{bmatrix} \cos x_3 & 0 & 0 & 0 \\ 
       \sin x_3 & 0 & 0 & 0 \\ 
-      \frac{1}{L} \tan u_2 & \frac{u_1}{L}\sec^2u_2 & 0 & 0 \\ 
+      \frac{\tan u_2}{L}  & \frac{u_1\sec^2u_2}{L} & 0 & 0 \\ 
        0 & 0 & \cos x_6 & 0 \\ 
        0 & 0 & \sin x_6 & 0 \\ 
        0 & 0 & 0 & 1 
