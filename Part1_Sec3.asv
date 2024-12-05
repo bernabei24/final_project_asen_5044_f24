@@ -51,7 +51,6 @@ dynamics = @(t, x) x_dotODE45(t, x, u_func,L);
 %PERTURBATION ADDED
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [t, x] = ode45(dynamics, t_span, x_init + perturb_x0); %perturbation added
-%[t, x] = ode45(dynamics, t_span, x_init); %use if perturbation unwanted
 
 % Wrap the angles theta_g (x(3,:)) and theta_a (x(6,:)) to [-pi, pi]
 x(:, 3) = mod(x(:, 3) + pi, 2*pi) - pi;  % Wrap theta_g (ground heading)
@@ -89,6 +88,30 @@ end
 sgtitle('State Trajectories over Time With Perturbation', 'Interpreter', 'latex');
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Simulate using LTV DT Model
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% solve nominal trajectory with no perturbations
+[t, x] = ode45(dynamics, t_span, x_init);
+
+% initial conditions for perturbation state vector
+x_sim = perturb_x0';
+
+% simulate system behavior at each time step k
+for k = 1:1:1000
+    % Use CT jacobians to find A and B at t = t_k and nom[k]
+    A_nom_k = get_Abar(u_init, x(k, :)');
+    B_nom_k = get_Bbar(u_init, x(k, :)', L);
+
+    % Eulerized estimate of DT Jacobians
+    F_k = eye(6) + dt * A_nom_k;
+    G_k = dt * B_nom_k;
+
+    %
+    x_sim(k + 1, :) = (F_k * x_sim(k, :)' + G_k * u_init)';
+
+end
 
 
 
