@@ -31,6 +31,7 @@
 \usepackage{graphicx}
 \usepackage{mathtools}
 \usepackage{url}
+\AtBeginEnvironment{bmatrix}{\setlength{\arraycolsep}{1.5pt}}
 %
 %
 %
@@ -97,12 +98,17 @@
 \thispagestyle{empty} %make title page header empty
 \newpage
 
+\tableofcontents
+
+
+
+\newpage
 
 %----------------------------------------------------------------------------------------
 %   PROBLEM SECTION
 %----------------------------------------------------------------------------------------
 %
-
+\section{Progress Report For Part I}
 \textbf{\\ Part 0: Introduction}
 \begin{framed}
 
@@ -124,6 +130,9 @@ Our group is nearly complete with Part I Deterministic System Analysis. At this 
 
 \end{framed}
 
+\newpage
+
+\section{Part I of Cooperative Air-Ground Robot Localization}
 \textbf{\\ Part I: Deterministic System Analysis }
 \begin{framed}
 \textbf{Part 1.} \\
@@ -388,9 +397,9 @@ The full state results of modeling using initial perturbation state conditions o
 \includegraphics[scale=0.2]{LinearizedFullStateDynamics.png}
 
 The perturbation states from the same simulation are shown below.
-
 \includegraphics[scale=0.2]{LinearizedPerturbationStateDynamics.png}
 
+\newpage
 \textbf{Part 3.} \\
 To validate the DT LTV model we simulated in part 2, we performed a full nonlinear simulation of the system with the same initial perturbation state conditions of \(\delta x = [0, 1, 0, 0, 0, 0.1]\). We performed this simulation using ODE45 in MATLAB. The results of the simulation are shown below.
 
@@ -399,6 +408,8 @@ To validate the DT LTV model we simulated in part 2, we performed a full nonline
 The linearized approximate dynamics simulation results are very close to that of the nonlinear simulation. By closely comparing the two plots, we were able to observe a very slight phase shift between the states of the two simulations, but the linearized simulation matches the nonlinear simulation very well.
 \end{framed}
 
+\newpage
+\section{Appendix}
 \textbf{\\ Appendix}
 \begin{framed}
 
