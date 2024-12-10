@@ -203,30 +203,33 @@ y_sim(:, 3) = mod(y_sim(:, 3) + pi, 2*pi) - pi;  % Wrap gamme_ga
 
 % Plot results
 figure;
-for i = 1:size(y_sim, 2)
-    subplot(size(y_sim, 2), 1, i);
-    plot(t, y_sim(:, i), 'LineWidth', 1.5);
+for i = 1:size(x_total, 2)
+    subplot(size(x_sim, 2), 1, i);
+    plot(t, x_sim(:, i), 'LineWidth', 1.5);
     grid on;
     
     % Adjust titles and labels based on the state variables
     if i == 1
-        title('$\gamma_{ag}$ (Bearing UAV to UGV)', 'Interpreter', 'latex');
-        ylabel('$\gamma_{ag}$ (rad)', 'Interpreter', 'latex');
+        title('$\xi$ (Easting of ground)', 'Interpreter', 'latex');
+        ylabel('$\xi$ (m)', 'Interpreter', 'latex');
     elseif i == 2
-        title('$\rho_{ga}$ (Distance UGV to UAV)', 'Interpreter', 'latex');
-        ylabel('$\rho_{ga}$ (m)', 'Interpreter', 'latex');
+        title('$\eta$ (Northing of ground)', 'Interpreter', 'latex');
+        ylabel('$\eta$ (m)', 'Interpreter', 'latex');
     elseif i == 3
-        title('$\gamma_{ga}$ (Bearing UGV to UAV)', 'Interpreter', 'latex');
-        ylabel('$\gamma_{ga}$ (rad)', 'Interpreter', 'latex');
+        title('$\theta$ (Heading of ground)', 'Interpreter', 'latex');
+        ylabel('$\theta$ (rad)', 'Interpreter', 'latex');
     elseif i == 4
-        title('$\xi_{a}$ (Easting of UAV)', 'Interpreter', 'latex');
-        ylabel('$\xi_{a}$ (m)', 'Interpreter', 'latex');
+        title('$\xi$ (Easting of air)', 'Interpreter', 'latex');
+        ylabel('$\xi$ (m)', 'Interpreter', 'latex');
     elseif i == 5
-        title('$\eta_{a}$ (Northing of UAV)', 'Interpreter', 'latex');
-        ylabel('$\eta_{a}$ (m)', 'Interpreter', 'latex');
+        title('$\eta$ (Northing of air)', 'Interpreter', 'latex');
+        ylabel('$\eta$ (m)', 'Interpreter', 'latex');
+    elseif i == 6
+        title('$\theta$ (Heading of air)', 'Interpreter', 'latex');
+        ylabel('$\theta$ (rad)', 'Interpreter', 'latex');
     end
     xlabel('Time (s)', 'Interpreter', 'latex');
 end
-sgtitle('Linearized Sensing Perturbations vs. Time', 'Interpreter', 'latex');
+sgtitle('Linearized Approx Perturbations vs. Time', 'Interpreter', 'latex');
 
 
