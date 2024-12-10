@@ -87,6 +87,40 @@ for i = 1:size(x, 2)
 end
 sgtitle('State Trajectories over Time With Perturbation', 'Interpreter', 'latex');
 
+% find total measurement vector by uncommenting line below
+y_total = get_Y(x);
+
+% Wrap the angles gamma_ag and gamma_ga to [-pi, pi]
+y_total(:, 1) = mod(y_total(:, 1) + pi, 2*pi) - pi;  % Wrap gamma_ag
+y_total(:, 3) = mod(y_total(:, 3) + pi, 2*pi) - pi;  % Wrap gamme_ga
+
+% Plot results
+figure;
+for i = 1:size(y_total, 2)
+    subplot(size(y_total, 2), 1, i);
+    plot(t, y_total(:, i), 'LineWidth', 1.5);
+    grid on;
+    
+    % Adjust titles and labels based on the state variables
+    if i == 1
+        title('$\gamma_{ag}$ (Bearing UAV to UGV)', 'Interpreter', 'latex');
+        ylabel('$\gamma_{ag}$ (rad)', 'Interpreter', 'latex');
+    elseif i == 2
+        title('$\rho_{ga}$ (Distance UGV to UAV)', 'Interpreter', 'latex');
+        ylabel('$\rho_{ga}$ (m)', 'Interpreter', 'latex');
+    elseif i == 3
+        title('$\gamma_{ga}$ (Bearing UGV to UAV)', 'Interpreter', 'latex');
+        ylabel('$\gamma_{ga}$ (rad)', 'Interpreter', 'latex');
+    elseif i == 4
+        title('$\xi_{a}$ (Easting of UAV)', 'Interpreter', 'latex');
+        ylabel('$\xi_{a}$ (m)', 'Interpreter', 'latex');
+    elseif i == 5
+        title('$\eta_{a}$ (Northing of UAV)', 'Interpreter', 'latex');
+        ylabel('$\eta_{a}$ (m)', 'Interpreter', 'latex');
+    end
+    xlabel('Time (s)', 'Interpreter', 'latex');
+end
+sgtitle('Full Nonlinear Sensing Simulation vs. Time', 'Interpreter', 'latex');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Simulate using LTV DT Model
@@ -194,18 +228,18 @@ end
 sgtitle('Linearized Approx Perturbations vs. Time', 'Interpreter', 'latex');
 
 % find total measurement vector by uncommenting line below
-%y_total = y + y_sim;
+y = get_Y(x);
+y_total = y + y_sim;
 
 % Wrap the angles gamma_ag and gamma_ga to [-pi, pi]
-% once plotting total y, need to change y_sim to y_total
-y_sim(:, 1) = mod(y_sim(:, 1) + pi, 2*pi) - pi;  % Wrap gamma_ag
-y_sim(:, 3) = mod(y_sim(:, 3) + pi, 2*pi) - pi;  % Wrap gamme_ga
+y_total(:, 1) = mod(y_total(:, 1) + pi, 2*pi) - pi;  % Wrap gamma_ag
+y_total(:, 3) = mod(y_total(:, 3) + pi, 2*pi) - pi;  % Wrap gamme_ga
 
 % Plot results
 figure;
-for i = 1:size(y_sim, 2)
-    subplot(size(y_sim, 2), 1, i);
-    plot(t, y_sim(:, i), 'LineWidth', 1.5);
+for i = 1:size(y_total, 2)
+    subplot(size(y_total, 2), 1, i);
+    plot(t, y_total(:, i), 'LineWidth', 1.5);
     grid on;
     
     % Adjust titles and labels based on the state variables
@@ -227,6 +261,6 @@ for i = 1:size(y_sim, 2)
     end
     xlabel('Time (s)', 'Interpreter', 'latex');
 end
-sgtitle('Linearized Sensing Perturbations vs. Time', 'Interpreter', 'latex');
+sgtitle('Linearized Sensing Model vs. Time', 'Interpreter', 'latex');
 
 
