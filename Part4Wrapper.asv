@@ -211,6 +211,4 @@ for k = 1:1000 %k=1 represents t = 0
 
 end
 
-plot_state_graphs(delx_plus, P_plus, tvec);
-
-plot_total_state_graphs(x_nominal, delx_plus, P_plus, tvec);
+plot_state_graphs(delx_plus, P_plus, tvec); %perturbation graphs
