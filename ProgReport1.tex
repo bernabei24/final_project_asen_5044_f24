@@ -31,6 +31,17 @@
 \usepackage{graphicx}
 \usepackage{mathtools}
 \usepackage{url}
+
+\usepackage{color}   %May be necessary if you want to color links
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true, %set true if you want colored links
+    linktoc=all,     %set to all if you want both sections and subsections linked
+    linkcolor=blue,  %choose some color if you want links to stand out
+}
+
+
+
 \AtBeginEnvironment{bmatrix}{\setlength{\arraycolsep}{1.5pt}}
 %
 %
@@ -100,6 +111,7 @@
 
 \tableofcontents
 
+\listoffigures
 
 
 \newpage
@@ -108,8 +120,9 @@
 %   PROBLEM SECTION
 %----------------------------------------------------------------------------------------
 %
-\section{Progress Report For Part I}
-\textbf{\\ Part 0: Introduction}
+
+\section{Progress Reports}
+\subsection{Progress Report For Part I}
 \begin{framed}
 
 \textbf{Team Member Contributions} \\
@@ -132,10 +145,39 @@ Our group is nearly complete with Part I Deterministic System Analysis. At this 
 
 \newpage
 
-\section{Part I of Cooperative Air-Ground Robot Localization}
-\textbf{\\ Part I: Deterministic System Analysis }
+
+%----------------------------------------------------------------------------------------
+%   PROBLEM SECTION
+%----------------------------------------------------------------------------------------
+%
+\subsection{Progress Report For Part II}
 \begin{framed}
-\textbf{Part 1.} \\
+
+\textbf{Team Member Contributions} \\
+Nicholas Martinez:
+\begin{enumerate}
+    \item tbd
+\end{enumerate}
+Whit Whittall:
+\begin{enumerate}
+    \item tbd
+\end{enumerate}
+Micheal Bernabei
+\begin{enumerate}
+    \item tbd
+\end{enumerate}
+
+ tbd
+
+\end{framed}
+
+
+\newpage
+
+
+\section{Part I. of Cooperative Air-Ground Robot Localization}
+\begin{framed}
+\subsection{Part I} \\
 
 We are given the Equation Of Motion (EOM) for the Unmanned Ground Vehicle (UGV).  The EOM is,
 
@@ -366,7 +408,7 @@ therefore we have the following Jacobians,
                      \end{bmatrix} \\
 \end{align*}
 
-\textbf{Part 2.} \\
+\subsection{Part II} \\
 
 The CT Jacobian matrices show that the cooperative air-ground localization system is time varying. For this reason, we skipped observability and stability analysis. Furthermore, it is dependent on the state and inputs. In order simulate the DT LTV system, we linearize around a known nominal trajectory. We find this trajectory by solving the nonlinear ODEs with inital state \(x\) = \([10, 0, \pi/2, -60, 0, -\pi/2]^{T}\) and inputs \(u = [2, -\pi/18, 12, \pi/2]^{T}\). We define "eulerized" DT Jacobians,
 
@@ -394,23 +436,60 @@ With these DT jacobians, we can model the system as,
 
 The full state results of modeling using initial perturbation state conditions of \(\delta x = [0, 1, 0, 0, 0, 0.1]\) are shown below.
 
-\includegraphics[scale=0.2]{LinearizedFullStateDynamics.png}
+\begin{minipage}[t]{1\linewidth}
+   \vspace{-2ex}
+   \includegraphics[scale=0.2]{LinearizedFullStateDynamics.png}
+   \centering
+   \captionof{figure}{Linearized Full State Dynamics}
+\end{minipage}
+ 
+ 
+
 
 The perturbation states from the same simulation are shown below.
-\includegraphics[scale=0.2]{LinearizedPerturbationStateDynamics.png}
+\begin{minipage}[t]{1\linewidth}
+   \vspace{-2ex}
+   \centering
+   \includegraphics[scale=0.2]{LinearizedPerturbationStateDynamics.png}
+   \captionof{figure}{Linearized Perturbation State Dynamics}
+\end{minipage}
 
 \newpage
-\textbf{Part 3.} \\
+\subsection{Part III} \\
 To validate the DT LTV model we simulated in part 2, we performed a full nonlinear simulation of the system with the same initial perturbation state conditions of \(\delta x = [0, 1, 0, 0, 0, 0.1]\). We performed this simulation using ODE45 in MATLAB. The results of the simulation are shown below.
 
-\includegraphics[scale=0.2]{NonlinearSimStateDynamics.png}
-
+\begin{minipage}[t]{1\linewidth}
+   \vspace{-2ex}
+   \centering
+   \includegraphics[scale=0.2]{NonlinearSimStateDynamics.png}
+   \captionof{figure}{Non-linear Simulated State Dynamics}
+\end{minipage}
+\\~\\
+\\~\\
 The linearized approximate dynamics simulation results are very close to that of the nonlinear simulation. By closely comparing the two plots, we were able to observe a very slight phase shift between the states of the two simulations, but the linearized simulation matches the nonlinear simulation very well.
 \end{framed}
 
+
+\newpage
+
+\section{Part II. STOCHASTIC NONLINEAR FILTERING}
+\begin{framed}
+
+\subsection{Part a.}
+
+\subsection{Part b.}
+
+\subsection{Part c.}
+
+
+
+\end{framed}
+
+
+
+
 \newpage
 \section{Appendix}
-\textbf{\\ Appendix}
 \begin{framed}
 
 We have attached a link to our team GitHub below. All code used to simulate the system and generate plots can be found at:
