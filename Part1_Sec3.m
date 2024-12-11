@@ -141,12 +141,12 @@ for k = 1:1:1000
     C_nom_k = get_Cbar(x(k, :)');
 
     % Eulerized estimate of DT Jacobians
-    F_k = dt * A_nom_k;
+    F_k = eye(6) + dt * A_nom_k;
     G_k = dt * B_nom_k;
     H_k = C_nom_k;
 
     % Calculate perturbation state at t = t_k
-    x_next = F_k * x_sim(k, :)' + G_k * u_init;
+    x_next = F_k * x_sim(k, :)' + G_k * [0, 0, 0, 0]';
     x_sim = [x_sim; x_next'];
 
     y_next = H_k * x_sim(k + 1, :)';
