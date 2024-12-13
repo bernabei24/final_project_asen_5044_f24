@@ -4,6 +4,21 @@ clc;
 
 load("cooplocalization_finalproj_KFdata.mat")
 
+%initial conditions
+
+L = 0.5; %m 
+Eg_init = 10; %m
+Ng_init = 0; %m
+thetag_init = pi/2; %rad
+vg_init = 2; %m/s
+phi_init = -pi/18; %rad
+Ea_init = -60; %m
+Na_init = 0; %m
+thetaa_init = -pi/2; %rad
+va_init = 12; %m/s
+omegaa_init = pi/25; %rad/s
+dt = 0.1; %sec
+
 %GENERATE RANDOM PROCESS NOISE VECTORS
 % Check if all eigenvalues of Q are positive
 eigenvaluesQ = eig(Qtrue);
@@ -44,50 +59,43 @@ else
     disp('The matrix R is not positive definite.');
 end
 
-u_func = @(t, x) u_init; % Constant control input
-w_func = @(t) w_k(:, floor(t / 0.1) + 1); % 
-
-% Define the nonlinear dynamics
-dynamics_noise = @(t, x) x_dotODE45noise(t, x, u_func, w_func, L); %for truth model
-dynamics_nominal = @(t, x) x_dotODE45(t, x, u_func,L); %for nominal trajectory
-
-% step 1: define initial conditions
-
-L = 0.5; %m 
-Eg_init = 10; %m
-Ng_init = 0; %m
-thetag_init = pi/2; %rad
-vg_init = 2; %m/s
-phi_init = -pi/18; %rad
-Ea_init = -60; %m
-Na_init = 0; %m
-thetaa_init = -pi/2; %rad
-va_init = 12; %m/s
-omegaa_init = pi/25; %rad/s
-dt = 0.1; %sec
-
+%constructing initial vectors
 perturb_x0 = [0; 1; 0; 0; 0; 0.1];
-x_init = [Eg_init Ng_init thetag_init Ea_init Na_init thetaa_init]';
+x_init = [Eg_init Ng_init thetag_init Ea_init Na_init thetaa_init]' + perturb_x0;
 u_init = [vg_init phi_init va_init omegaa_init]';
 
-% Define the nonlinear dynamics
+%Define input
 u_func = @(t, x) u_init; % Constant control input
-w_func = @(t) w_k(:, floor(t / 0.1) + 1); % 
+w_func = @(t) w_k(:, floor(t / 0.1) + 1);
+
+% Define the nonlinear dynamics
 dynamics_noise = @(t, x) x_dotODE45noise(t, x, u_func, w_func, L); %for truth model
 dynamics_nominal = @(t, x) x_dotODE45(t, x, u_func,L); %for nominal trajectory
 
 % solve nominal trajectory with no perturbations
-[t, x_true] = ode45(dynamics_noise, tvec, x_init);  %perturbation not added
+[t, x_true] = ode45(dynamics_noise, tvec, x_init);
 [t, x_nominal] = ode45(dynamics_nominal, tvec, x_init); %perturbation not added
-y_true = get_Y(x_true);
-y_nominal = get_Y(x_nominal);
+
+
+% Wrap the angles theta_g (x(3,:)) and theta_a (x(6,:)) to [-pi, pi]
+%x_true(:, 3) = mod(x_true(:, 3) + pi, 2*pi) - pi;  % Wrap theta_g (ground heading)
+%x_true(:, 6) = mod(x_true(:, 6) + pi, 2*pi) - pi;  % Wrap theta_a (air heading)
+
+x_nominal(:, 3) = mod(x_nominal(:, 3) + pi, 2*pi) - pi;  % Wrap theta_g (ground heading)
+x_nominal(:, 6) = mod(x_nominal(:, 6) + pi, 2*pi) - pi;  % Wrap theta_a (air heading)
+
+% find total measurement vector
+y_true = get_Y_noise(x_true,v_k');
+y_nom = get_Y(x_nominal);
 % define ydata for testing
 % ydata = ydata;    % default uses given ydata from canvas
-% ydata = y_true';
+ydata = y_true';
 
-% x_init = [Eg_init Ng_init thetag_init Ea_init Na_init thetaa_init]' + perturb_x0;
+%%%%%%%
+% INITIALIZING EKF LOOP
+%%%%%%%
 
-P_init = 1000 * diag([1, 1, 1, 1, 1, 1]);
+P_init = 10 * diag([1, 1, 1, 1, 1, 1]);
 
 %pretty sure this is what gamma looks like although not positive
 Gamma = eye(6);
@@ -129,36 +137,43 @@ t = dt*(0:1000);
 % Wrap the angles theta_g (x_total(3,:)) and theta_a (x_total(6,:)) to [-pi, pi]
 x_plus(:, 3) = mod(x_plus(:, 3) + pi, 2*pi) - pi;  % Wrap theta_g (ground heading)
 x_plus(:, 6) = mod(x_plus(:, 6) + pi, 2*pi) - pi;  % Wrap theta_a (air heading)
+x_true(:, 3) = mod(x_true(:, 3) + pi, 2*pi) - pi;  % Wrap theta_g (ground heading)
+x_true(:, 6) = mod(x_true(:, 6) + pi, 2*pi) - pi;  % Wrap theta_a (air heading)
 
-EKF_total_state_graphs(x_nominal, x_plus', P_plus, tvec)
+% plots with 2sigma error bounds
+EKF_total_state_graphs(x_true, x_plus', P_plus, tvec)
 
-% % Plot results
-% figure;
-% for i = 1:size(x_plus, 2)
-%     subplot(size(x_plus, 2), 1, i);
-%     plot(t, x_plus(:, i), 'LineWidth', 1.5);
-%     grid on;
-% 
-%     % Adjust titles and labels based on the state variables
-%     if i == 1
-%         title('$\xi$ (Easting of ground)', 'Interpreter', 'latex');
-%         ylabel('$\xi$ (m)', 'Interpreter', 'latex');
-%     elseif i == 2
-%         title('$\eta$ (Northing of ground)', 'Interpreter', 'latex');
-%         ylabel('$\eta$ (m)', 'Interpreter', 'latex');
-%     elseif i == 3
-%         title('$\theta$ (Heading of ground)', 'Interpreter', 'latex');
-%         ylabel('$\theta$ (rad)', 'Interpreter', 'latex');
-%     elseif i == 4
-%         title('$\xi$ (Easting of air)', 'Interpreter', 'latex');
-%         ylabel('$\xi$ (m)', 'Interpreter', 'latex');
-%     elseif i == 5
-%         title('$\eta$ (Northing of air)', 'Interpreter', 'latex');
-%         ylabel('$\eta$ (m)', 'Interpreter', 'latex');
-%     elseif i == 6
-%         title('$\theta$ (Heading of air)', 'Interpreter', 'latex');
-%         ylabel('$\theta$ (rad)', 'Interpreter', 'latex');
-%     end
-%     xlabel('Time (s)', 'Interpreter', 'latex');
-% end
-% sgtitle('EKF Estimated States vs. Time', 'Interpreter', 'latex');
+%{
+% Plot results
+figure;
+for i = 1:size(x_plus, 2)
+    subplot(size(x_plus, 2), 1, i);
+    plot(t, x_plus(:, i), t, x_true(:, i), 'LineWidth', 1.5);
+    grid on;
+
+    % Adjust titles and labels based on the state variables
+    if i == 1
+        title('$\xi$ (Easting of ground)', 'Interpreter', 'latex');
+        ylabel('$\xi$ (m)', 'Interpreter', 'latex');
+    elseif i == 2
+        title('$\eta$ (Northing of ground)', 'Interpreter', 'latex');
+        ylabel('$\eta$ (m)', 'Interpreter', 'latex');
+    elseif i == 3
+        title('$\theta$ (Heading of ground)', 'Interpreter', 'latex');
+        ylabel('$\theta$ (rad)', 'Interpreter', 'latex');
+    elseif i == 4
+        title('$\xi$ (Easting of air)', 'Interpreter', 'latex');
+        ylabel('$\xi$ (m)', 'Interpreter', 'latex');
+    elseif i == 5
+        title('$\eta$ (Northing of air)', 'Interpreter', 'latex');
+        ylabel('$\eta$ (m)', 'Interpreter', 'latex');
+    elseif i == 6
+        title('$\theta$ (Heading of air)', 'Interpreter', 'latex');
+        ylabel('$\theta$ (rad)', 'Interpreter', 'latex');
+    end
+    xlabel('Time (s)', 'Interpreter', 'latex');
+    legend('Estimated States', 'Ground Truth States')
+end
+legend('Estimated States', 'Ground Truth States')
+sgtitle('EKF Estimated States vs. Time', 'Interpreter', 'latex');
+%}
