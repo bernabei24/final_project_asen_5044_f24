@@ -31,6 +31,8 @@
 \usepackage{graphicx}
 \usepackage{mathtools}
 \usepackage{url}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
 \usepackage{color}   %May be necessary if you want to color links
 \usepackage{hyperref}
@@ -113,6 +115,7 @@
 
 \listoffigures
 
+\listofalgorithms
 
 \newpage
 
@@ -164,7 +167,7 @@ Whit Whittall:
 \end{enumerate}
 Micheal Bernabei
 \begin{enumerate}
-    \item tbd
+    \item Truth Model Testing 
 \end{enumerate}
 
  tbd
@@ -478,10 +481,81 @@ The linearized approximate dynamics simulation results are very close to that of
 \subsection{Part a.}
 
 \subsection{Part b.}
+\subsubsection{Explanation of NEES Test Statistic and Plot}
 
+The pseudo code for how the test was setup is located here \hyperref[alg:TMT_nees_algo]{NEES Test Setup Psuedo Code}.  Essentially, we followed the model provided in lecture 29 of class. That is, we have a script that reads in $x_k$ (ground truth) and simulated measurements $y_k$ to our Kalman Filter code.  The Kalman filter code then generates ($\hat{x}_k, P^{+}_k$) during the predictor-corrector step of the algorithm. During the predictor-corrector step we produce the NEES test statistic $\epsilon_{x,k}$ and store it for the simulation run.  Then at the end of the Monte Carlo simulations we compute $\Bar{\epsilon}_{x,k}$ for each run and store these values for plotting against the confidence bounds computed by the $\chi^2$ function provided by MATLAB.  The confidence bound has values $r_1x$ and $r_2x$.  They are centered on a value of 6 in the NEES case because our Degrees-of-Freedom (DOF) is 6 in the case of our dynamical system.  
+\newline
+We are currently in the process of tuning our LKF filter and therefore expect that our $\Bar{\epsilon}_{x,k}$ values will be outside the confidence bounds for the NEES statistic centered on 6.  See \hyperref[fig:nees_plot_lkf]{NEES Plot for LKF}.
+\newline
+\begin{minipage}[t]{1\linewidth}
+   \vspace{-2ex}
+   \centering
+   \includegraphics[scale=0.42]{NEES_stat.png}
+   \captionof{figure}{NEES Plot for LKF}\label{fig:nees_plot_lkf}
+\end{minipage}
+
+\begin{algorithm}[H]
+\caption{Truth Model Test (TMT) Algorithm for NEES}\label{alg:TMT_nees_algo}
+\begin{algorithmic}[1] % Enable number with [1]
+\State numberOfSimulations = 100
+\State NEESSimRun is allocated to length of numberOfSimulations
+\State numberTimeSteps = 1000
+\While{numberOfSimulations > 0}
+\State NEESStorage is initialized to the length of numberTimeSteps
+\While {numberTimeSteps > 0}
+\State Perform LKF perdictor-corrector step
+\State Compute NEES statistic
+\State Save NEES Statistic in NEESStorage
+\EndWhile
+\State save NEESStorage in NEESSimRun
+\EndWhile
+\State Allocate NEESBar with length equal to simulation runs
+\State Compute NEES mean for each run in NEESSimRun and put in NEESBar
+\State Tune $\alpha$ for use in MATLAB $\chi^2$ call
+\State Calculate degrees of freedom for MATLAB $\chi^2$ call 
+\State Compute confidence interval using $\chi^2$  function in MATLAB
+\State Plot NEES test
+\end{algorithmic}
+\end{algorithm}
+\newpage
 \subsection{Part c.}
+The NIS test statistic mirrors the algorithmic steps and computations required by the NEES statistic.  Hence, we will omit the step-by-step details for the NIS computation and ask the reader to see the previous section for exact steps in computing the statistic.  Also see \hyperref[alg:TMT_nis_algo]{NIS Test Setup Psuedo Code} for pseudo code.  The main difference between the NEES And NIS test statistic is that the NIS test statistic works with measurement values versus state.  Hence, we have $\epsilon_{y,k}$ instead of $\epsilon_{x,k}$.
+\newline
+We are currently in the process of tuning our LKF filter and therefore expect that our $\Bar{\epsilon}_{y,k}$ values will be outside the confidence bounds for the NIS statistic centered on 5.  We have also noticed that they are dramicatlly deviated from the confidence bound and are taking steps to ensure the statistic is being computed correctly.  See \hyperref[fig:nis_plot_lkf]{NIS Plot for LKF}.
+\\~\\
+\\~\\
+\begin{minipage}[t]{1\linewidth}
+   \vspace{-2ex}
+   \centering
+   \includegraphics[scale=0.55]{NIS_LKF_plot.png}
+   \captionof{figure}{NIS Plot for LKF}\label{fig:nis_plot_lkf}
+\end{minipage}
 
-
+\newpage
+\subsubsection{Explanation of NIS Test Statistic And Plot}
+\begin{algorithm}[H]
+\caption{Truth Model Test (TMT) Algorithm for NIS}\label{alg:TMT_nis_algo}
+\begin{algorithmic}[1] % Enable number with [1]
+\State numberOfSimulations = 100
+\State NISSimRun is allocated to length of numberOfSimulations
+\State numberTimeSteps = 1000
+\While{numberOfSimulations > 0}
+\State NISStorage is initialized to the length of numberTimeSteps
+\While {numberTimeSteps > 0}
+\State Perform LKF perdictor-corrector step
+\State Compute NIS statistic
+\State Save NIS Statistic in NISStorage
+\EndWhile
+\State save NISStorage in NISSimRun
+\EndWhile
+\State Allocate NISBar with length equal to simulation runs
+\State Compute NIS mean for each run in NISSimRun and put in NISBar
+\State Tune $\alpha$ for use in MATLAB $\chi^2$ call
+\State Calculate degrees of freedom for MATLAB $\chi^2$ call 
+\State Compute confidence interval using $\chi^2$  function in MATLAB
+\State Plot NIS test
+\end{algorithmic}
+\end{algorithm}
 
 \end{framed}
 
