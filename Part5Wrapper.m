@@ -83,7 +83,7 @@ y_true = get_Y(x_true);
 y_nominal = get_Y(x_nominal);
 % define ydata for testing
 % ydata = ydata;    % default uses given ydata from canvas
-ydata = y_true';
+% ydata = y_true';
 
 % x_init = [Eg_init Ng_init thetag_init Ea_init Na_init thetaa_init]' + perturb_x0;
 
