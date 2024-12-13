@@ -44,6 +44,13 @@ else
     disp('The matrix R is not positive definite.');
 end
 
+% define ydata for testing
+% ydata = ydata;    % default uses given ydata from canvas
+u_func = @(t, x) u_init; % Constant control input
+w_func = @(t) w_k(:, floor(t / 0.1) + 1); % 
+
+
+
 % step 1: define initial conditions
 
 L = 0.5; %m 
@@ -70,9 +77,7 @@ Gamma = eye(6);
 Omega = dt * Gamma;
 
 % set up CT nonlinear dynamics functions
-u_func = @(t, x) u_init; % Constant control input
-w_func = @(t) w_k(:, floor(t / 0.1) + 1);
-f = @(t, x) x_dotODE45(t, x, u_func, L); %
+f = @(t, x) x_dotODE45(t, x, u_func, L); % for computing trajectory online
 
 
 % step 2: k = 0

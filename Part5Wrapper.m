@@ -44,6 +44,13 @@ else
     disp('The matrix R is not positive definite.');
 end
 
+u_func = @(t, x) u_init; % Constant control input
+w_func = @(t) w_k(:, floor(t / 0.1) + 1); % 
+
+% Define the nonlinear dynamics
+dynamics_noise = @(t, x) x_dotODE45noise(t, x, u_func, w_func, L); %for truth model
+dynamics_nominal = @(t, x) x_dotODE45(t, x, u_func,L); %for nominal trajectory
+
 % step 1: define initial conditions
 
 L = 0.5; %m 
@@ -60,8 +67,25 @@ omegaa_init = pi/25; %rad/s
 dt = 0.1; %sec
 
 perturb_x0 = [0; 1; 0; 0; 0; 0.1];
-x_init = [Eg_init Ng_init thetag_init Ea_init Na_init thetaa_init]' + perturb_x0;
+x_init = [Eg_init Ng_init thetag_init Ea_init Na_init thetaa_init]';
 u_init = [vg_init phi_init va_init omegaa_init]';
+
+% Define the nonlinear dynamics
+u_func = @(t, x) u_init; % Constant control input
+w_func = @(t) w_k(:, floor(t / 0.1) + 1); % 
+dynamics_noise = @(t, x) x_dotODE45noise(t, x, u_func, w_func, L); %for truth model
+dynamics_nominal = @(t, x) x_dotODE45(t, x, u_func,L); %for nominal trajectory
+
+% solve nominal trajectory with no perturbations
+[t, x_true] = ode45(dynamics_noise, tvec, x_init);  %perturbation not added
+[t, x_nominal] = ode45(dynamics_nominal, tvec, x_init); %perturbation not added
+y_true = get_Y(x_true);
+y_nominal = get_Y(x_nominal);
+% define ydata for testing
+% ydata = ydata;    % default uses given ydata from canvas
+ydata = y_true';
+
+% x_init = [Eg_init Ng_init thetag_init Ea_init Na_init thetaa_init]' + perturb_x0;
 
 P_init = 1000 * diag([1, 1, 1, 1, 1, 1]);
 
@@ -70,10 +94,7 @@ Gamma = eye(6);
 Omega = dt * Gamma;
 
 % set up CT nonlinear dynamics functions
-u_func = @(t, x) u_init; % Constant control input
-w_func = @(t) w_k(:, floor(t / 0.1) + 1);
 f = @(t, x) x_dotODE45(t, x, u_func, L); % for computing trajectory online
-
 
 % step 2: k = 0
 x_min = x_init;
@@ -109,33 +130,35 @@ t = dt*(0:1000);
 x_plus(:, 3) = mod(x_plus(:, 3) + pi, 2*pi) - pi;  % Wrap theta_g (ground heading)
 x_plus(:, 6) = mod(x_plus(:, 6) + pi, 2*pi) - pi;  % Wrap theta_a (air heading)
 
-% Plot results
-figure;
-for i = 1:size(x_plus, 2)
-    subplot(size(x_plus, 2), 1, i);
-    plot(t, x_plus(:, i), 'LineWidth', 1.5);
-    grid on;
-    
-    % Adjust titles and labels based on the state variables
-    if i == 1
-        title('$\xi$ (Easting of ground)', 'Interpreter', 'latex');
-        ylabel('$\xi$ (m)', 'Interpreter', 'latex');
-    elseif i == 2
-        title('$\eta$ (Northing of ground)', 'Interpreter', 'latex');
-        ylabel('$\eta$ (m)', 'Interpreter', 'latex');
-    elseif i == 3
-        title('$\theta$ (Heading of ground)', 'Interpreter', 'latex');
-        ylabel('$\theta$ (rad)', 'Interpreter', 'latex');
-    elseif i == 4
-        title('$\xi$ (Easting of air)', 'Interpreter', 'latex');
-        ylabel('$\xi$ (m)', 'Interpreter', 'latex');
-    elseif i == 5
-        title('$\eta$ (Northing of air)', 'Interpreter', 'latex');
-        ylabel('$\eta$ (m)', 'Interpreter', 'latex');
-    elseif i == 6
-        title('$\theta$ (Heading of air)', 'Interpreter', 'latex');
-        ylabel('$\theta$ (rad)', 'Interpreter', 'latex');
-    end
-    xlabel('Time (s)', 'Interpreter', 'latex');
-end
-sgtitle('EKF Estimated States vs. Time', 'Interpreter', 'latex');
+EKF_total_state_graphs(x_nominal, x_plus', P_plus, tvec)
+
+% % Plot results
+% figure;
+% for i = 1:size(x_plus, 2)
+%     subplot(size(x_plus, 2), 1, i);
+%     plot(t, x_plus(:, i), 'LineWidth', 1.5);
+%     grid on;
+% 
+%     % Adjust titles and labels based on the state variables
+%     if i == 1
+%         title('$\xi$ (Easting of ground)', 'Interpreter', 'latex');
+%         ylabel('$\xi$ (m)', 'Interpreter', 'latex');
+%     elseif i == 2
+%         title('$\eta$ (Northing of ground)', 'Interpreter', 'latex');
+%         ylabel('$\eta$ (m)', 'Interpreter', 'latex');
+%     elseif i == 3
+%         title('$\theta$ (Heading of ground)', 'Interpreter', 'latex');
+%         ylabel('$\theta$ (rad)', 'Interpreter', 'latex');
+%     elseif i == 4
+%         title('$\xi$ (Easting of air)', 'Interpreter', 'latex');
+%         ylabel('$\xi$ (m)', 'Interpreter', 'latex');
+%     elseif i == 5
+%         title('$\eta$ (Northing of air)', 'Interpreter', 'latex');
+%         ylabel('$\eta$ (m)', 'Interpreter', 'latex');
+%     elseif i == 6
+%         title('$\theta$ (Heading of air)', 'Interpreter', 'latex');
+%         ylabel('$\theta$ (rad)', 'Interpreter', 'latex');
+%     end
+%     xlabel('Time (s)', 'Interpreter', 'latex');
+% end
+% sgtitle('EKF Estimated States vs. Time', 'Interpreter', 'latex');
