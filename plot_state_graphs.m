@@ -40,5 +40,5 @@ function plot_state_graphs(delx_plus, P_plus, tvec)
     end
     
     % Super title for the figure
-    sgtitle('State Estimates with \pm2 Standard Deviations Error Bounds');
+    sgtitle('State Deviation Estimates with \pm2 Standard Deviations Error Bounds');
 end

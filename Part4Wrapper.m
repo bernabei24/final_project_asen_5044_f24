@@ -22,7 +22,7 @@ dt = 0.1; %sec
 %GENERATE RANDOM PROCESS NOISE VECTORS
 % Check if all eigenvalues of Q are positive
 eigenvaluesQ = eig(Qtrue);
-rng(1); % for reproduceability
+rng(10); % for reproduceability
 if all(eigenvaluesQ > 0)
     disp('The matrix Q is positive definite.');
 
@@ -140,13 +140,25 @@ y_nom = get_Y(x_nominal);
 y_true(:, 1) = mod(y_true(:, 1) + pi, 2*pi) - pi;  % Wrap gamma_ag
 y_true(:, 3) = mod(y_true(:, 3) + pi, 2*pi) - pi;  % Wrap gamme_ga
 
+% Assuming y_true and y_nom are your matrices, each of size 1001x5
+y_true(:, 1) = wrapToPi(y_true(:, 1));  % Wrap the first column (angles) of y_true
+y_true(:, 3) = wrapToPi(y_true(:, 3));  % Wrap the third column (angles) of y_true
+
+y_nom(:, 1) = wrapToPi(y_nom(:, 1));    % Wrap the first column (angles) of y_nom
+y_nom(:, 3) = wrapToPi(y_nom(:, 3));    % Wrap the third column (angles) of y_nom
+
 % Plot Truth Model Measurements
 figure;
 for i = 1:size(y_true, 2)
     subplot(size(y_true, 2), 1, i);
     plot(t, y_true(:, i), 'LineWidth', 1.5);
+    hold on; % Keep the current plot
+    plot(t, y_nom(:, i), 'r', 'LineWidth', 1.5); % Red line for nominal data
+    hold off; % Release the plot for new settings
     grid on;
     
+    legend('True State', 'Nominal State', 'Location', 'best');
+
     % Adjust titles and labels based on the state variables
     if i == 1
         title('$\gamma_{ag}$ (Bearing UAV to UGV)', 'Interpreter', 'latex');
@@ -168,6 +180,7 @@ for i = 1:size(y_true, 2)
 end
 sgtitle('Truth Measurments vs. Time', 'Interpreter', 'latex');
 
+
 %INITIALIZING FOR LKF LOOP
 %pretty sure this is what gamme looks like although not positive
 gamma = eye(size(x_true,2));
@@ -180,8 +193,14 @@ P_plus = zeros(6,6,1001);
 P_minus = zeros(6,6,1001);
 K = zeros(6,5,1001);
 
-delx_plus(:,1) = zeros(6,1); %adjustable
-P_plus(:,:,1) = zeros(6,6); %adjustable
+% delx_plus(:,1) = zeros(6,1); %adjustable
+% P_plus(:,:,1) = zeros(6,6); %adjustable
+
+[del_x_0,P_plus_0] = get_init_conditions(dely,x_nominal,u_init,dt,Rtrue,10);
+
+delx_plus(:,1) = del_x_0; %adjustable
+P_plus(:,:,1) = P_plus_0; %adjustable
+
 Q_filter = Qtrue;
 %Compute jacobians at each time step from nominal trajectory
 for k = 1:1000 %k=1 represents t = 0
@@ -191,7 +210,7 @@ for k = 1:1000 %k=1 represents t = 0
     C_nom_k = get_Cbar(x_nominal(k+1, :)'); %need H_k+1 not H_k
     
     % Eulerized estimate of DT Jacobians
-    F_k = dt * A_nom_k;
+    F_k = eye(6) + dt * A_nom_k;
     G_k = dt * B_nom_k;
     H_k_plus_1 = C_nom_k;%need H_k+1 not H_k
     
@@ -210,7 +229,9 @@ for k = 1:1000 %k=1 represents t = 0
 
 
 end
+% 
+% plot_state_graphs(delx_plus, P_plus, tvec);
+% 
+% plot_total_state_graphs(x_nominal, delx_plus, P_plus, tvec);
 
-plot_state_graphs(delx_plus, P_plus, tvec);
-
-plot_total_state_graphs(x_nominal, delx_plus, P_plus, tvec);
+plot_states_and_errors(delx_plus,x_nominal,x_true,P_plus,tvec);
