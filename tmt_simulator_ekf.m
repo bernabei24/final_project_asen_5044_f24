@@ -145,6 +145,8 @@ for ss = 1:numberOfSimulationRuns
     %  TODO - Figure out how to properly initialize TMT according to Dr. Nisar's instructions
     %
     %
+    x_plus(:,1) = mvnrnd(x_plus(:,1), P_plus(:,:,1))';
+    
 
 for k = 1:1000
     % step 3: time update/prediction step for time k + 1
