@@ -95,7 +95,7 @@ ydata = y_true';
 % INITIALIZING EKF LOOP
 %%%%%%%
 
-P_init = 10 * diag([1, 1, 1, 1, 1, 1]);
+P_init = 0.1 * diag([1, 1, 1, 1, 1, 1]);
 
 %pretty sure this is what gamma looks like although not positive
 Gamma = eye(6);
