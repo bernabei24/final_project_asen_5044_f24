@@ -4,6 +4,8 @@ function plot_states_and_errorsEKF(total_state, x_true, P_plus, tvec)
     % Calculate the errors for each state
     state_errors = total_state - x_true;
     
+    state_errors(:,3) = wrappedAngleDiff(total_state(:,3), x_true(:,3));
+    state_errors(:,6) = wrappedAngleDiff(total_state(:,6), x_true(:,6));
     % Initialize the figure
     figure;
     
