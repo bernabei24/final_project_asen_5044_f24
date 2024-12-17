@@ -80,20 +80,22 @@ dynamics_nominal = @(t, x) x_dotODE45(t, x, u_func,L); %for nominal trajectory
 [t, x_true] = ode45(dynamics_noise, tvec, x_init);
 [t, x_nominal] = ode45(dynamics_nominal, tvec, x_init);
 
+% wrapping x_true causes errors in the EKF
+x_plot = x_true;
 
 % Wrap the angles theta_g (x(3,:)) and theta_a (x(6,:)) to [-pi, pi]
-x_true(:, 3) = mod(x_true(:, 3) + pi, 2*pi) - pi;  % Wrap theta_g (ground heading)
-x_true(:, 6) = mod(x_true(:, 6) + pi, 2*pi) - pi;  % Wrap theta_a (air heading)
+x_plot(:, 3) = mod(x_plot(:, 3) + pi, 2*pi) - pi;  % Wrap theta_g (ground heading)
+x_plot(:, 6) = mod(x_plot(:, 6) + pi, 2*pi) - pi;  % Wrap theta_a (air heading)
 
 x_nominal(:, 3) = mod(x_nominal(:, 3) + pi, 2*pi) - pi;  % Wrap theta_g (ground heading)
 x_nominal(:, 6) = mod(x_nominal(:, 6) + pi, 2*pi) - pi;  % Wrap theta_a (air heading)
 
-figure;
-for i = 1:size(x_true, 2)
-    subplot(size(x_true, 2), 1, i);
+figure; % plot 1
+for i = 1:size(x_plot, 2)
+    subplot(size(x_plot, 2), 1, i);
     
     % Plot x_true in red
-    plot(t, x_true(:, i), 'r', 'LineWidth', 1.5); % 'r' specifies red color
+    plot(t, x_plot(:, i), 'r', 'LineWidth', 1.5); % 'r' specifies red color
     hold on;  % Keep the plot to overlay the next data set
     
     % Plot x_nominal in blue
@@ -140,11 +142,13 @@ y_true = get_Y_noise(x_true,v_k');
 y_nom = get_Y(x_nominal);
 
 % Wrap the angles gamma_ag and gamma_ga to [-pi, pi]
-y_true(:, 1) = mod(y_true(:, 1) + pi, 2*pi) - pi;  % Wrap gamma_ag
-y_true(:, 3) = mod(y_true(:, 3) + pi, 2*pi) - pi;  % Wrap gamme_ga
+y_true_plot = y_true;
+y_nom_plot = y_nom;
+y_true_plot(:, 1) = mod(y_true(:, 1) + pi, 2*pi) - pi;  % Wrap gamma_ag
+y_true_plot(:, 3) = mod(y_true(:, 3) + pi, 2*pi) - pi;  % Wrap gamme_ga
 
-y_nom(:, 1) = wrapToPi(y_nom(:, 1));    % Wrap the first column (angles) of y_nom
-y_nom(:, 3) = wrapToPi(y_nom(:, 3));    % Wrap the third column (angles) of y_nom
+y_nom_plot(:, 1) = wrapToPi(y_nom(:, 1));    % Wrap the first column (angles) of y_nom
+y_nom_plot(:, 3) = wrapToPi(y_nom(:, 3));    % Wrap the third column (angles) of y_nom
 
 % define ydata for testing
 % ydata = ydata;    % default uses given ydata from canvas
@@ -154,9 +158,9 @@ dely = y_true - y_nom;
 figure;
 for i = 1:size(y_true, 2)
     subplot(size(y_true, 2), 1, i);
-    plot(t, y_true(:, i), 'LineWidth', 1.5);
+    plot(t, y_true_plot(:, i), 'LineWidth', 1.5);
     hold on; % Keep the current plot
-    plot(t, y_nom(:, i), 'r', 'LineWidth', 1.5); % Red line for nominal data
+    plot(t, y_nom_plot(:, i), 'r', 'LineWidth', 1.5); % Red line for nominal data
     hold off; % Release the plot for new settings
     grid on;
     
@@ -194,13 +198,15 @@ sgtitle('Truth Measurments vs. Time', 'Interpreter', 'latex');
 
 
 % okay... I don't think this function works
-[del_x_0,P_plus_0] = get_init_conditions(dely,x_nominal,u_init,dt,Rtrue,10);
+%[del_x_0,P_plus_0] = get_init_conditions(del_y,x_nominal,u_init,dt,Rtrue,10);
 
 % my function
-%[~, P_init] = warm_start(y_true', x_nominal, Rtrue);
+delu = [0, 0, 0, 0]';
+%[delx_0, P_init] = warm_start(dely', x_nominal, delu, L, Rtrue);
+%x_init = x_init + delx_0;
 
 % human guess... doesn't result in good performance
-%P_init = 0.1 * diag([1, 1, 1, 1, 1, 1]);
+P_init = 0.1 * diag([1, 1, 1, 1, 1, 1]);
 
 %%%%%%%
 % gonna try and tune Q in here
@@ -224,16 +230,16 @@ Omega = dt * Gamma;
 f = @(t, x) x_dotODE45(t, x, u_func, L); % for computing trajectory online
 
 %nick's experiment:
-x_min = x_init + del_x_0;
-x_plus = x_init + del_x_0;
-P_min = P_plus_0;
-P_plus = P_plus_0;
+% x_min = x_init + del_x_0;
+% x_plus = x_init + del_x_0;
+% P_min = P_plus_0;
+% P_plus = P_plus_0;
 
 % step 2: k = 0
-% x_min = x_init;
-% x_plus = x_init;
-% P_min = P_init;
-% P_plus = P_init;
+x_min = x_init;
+x_plus = x_init;
+P_min = P_init;
+P_plus = P_init;
 
 for k = 1:1000
     % step 3: time update/prediction step for time k + 1
@@ -268,37 +274,3 @@ x_true(:, 6) = mod(x_true(:, 6) + pi, 2*pi) - pi;  % Wrap theta_a (air heading)
 % plots with 2sigma error bounds
 %EKF_total_state_graphs(x_true, x_plus', P_plus, tvec)
 plot_states_and_errorsEKF(x_plus,x_true,P_plus,tvec)
-%{
-% Plot results
-figure;
-for i = 1:size(x_plus, 2)
-    subplot(size(x_plus, 2), 1, i);
-    plot(t, x_plus(:, i), t, x_true(:, i), 'LineWidth', 1.5);
-    grid on;
-
-    % Adjust titles and labels based on the state variables
-    if i == 1
-        title('$\xi$ (Easting of ground)', 'Interpreter', 'latex');
-        ylabel('$\xi$ (m)', 'Interpreter', 'latex');
-    elseif i == 2
-        title('$\eta$ (Northing of ground)', 'Interpreter', 'latex');
-        ylabel('$\eta$ (m)', 'Interpreter', 'latex');
-    elseif i == 3
-        title('$\theta$ (Heading of ground)', 'Interpreter', 'latex');
-        ylabel('$\theta$ (rad)', 'Interpreter', 'latex');
-    elseif i == 4
-        title('$\xi$ (Easting of air)', 'Interpreter', 'latex');
-        ylabel('$\xi$ (m)', 'Interpreter', 'latex');
-    elseif i == 5
-        title('$\eta$ (Northing of air)', 'Interpreter', 'latex');
-        ylabel('$\eta$ (m)', 'Interpreter', 'latex');
-    elseif i == 6
-        title('$\theta$ (Heading of air)', 'Interpreter', 'latex');
-        ylabel('$\theta$ (rad)', 'Interpreter', 'latex');
-    end
-    xlabel('Time (s)', 'Interpreter', 'latex');
-    legend('Estimated States', 'Ground Truth States')
-end
-legend('Estimated States', 'Ground Truth States')
-sgtitle('EKF Estimated States vs. Time', 'Interpreter', 'latex');
-%}
