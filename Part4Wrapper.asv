@@ -1,4 +1,3 @@
-% Extended Kalman Filter
 clear;
 clc;
 close all;
@@ -61,11 +60,8 @@ else
 end
 
 %constructing initial vectors
-%perturb_x0 = [0; 1; 0; 0; 0; 0.1];
-%nick's test
-
-perturb_x0 = zeros(6,1);
-x_init = [Eg_init Ng_init thetag_init Ea_init Na_init thetaa_init]' + perturb_x0;
+perturb_x0 = [0; 1; 0; 0; 0; 0.1];
+x_init = [Eg_init Ng_init thetag_init Ea_init Na_init thetaa_init]';
 u_init = [vg_init phi_init va_init omegaa_init]';
 
 %Define input
@@ -78,7 +74,7 @@ dynamics_nominal = @(t, x) x_dotODE45(t, x, u_func,L); %for nominal trajectory
 
 % solve nominal trajectory with no perturbations
 [t, x_true] = ode45(dynamics_noise, tvec, x_init);
-[t, x_nominal] = ode45(dynamics_nominal, tvec, x_init);
+[t, x_nominal] = ode45(dynamics_nominal, tvec, x_init); %perturbation not added
 
 
 % Wrap the angles theta_g (x(3,:)) and theta_a (x(6,:)) to [-pi, pi]
@@ -88,6 +84,7 @@ x_true(:, 6) = mod(x_true(:, 6) + pi, 2*pi) - pi;  % Wrap theta_a (air heading)
 x_nominal(:, 3) = mod(x_nominal(:, 3) + pi, 2*pi) - pi;  % Wrap theta_g (ground heading)
 x_nominal(:, 6) = mod(x_nominal(:, 6) + pi, 2*pi) - pi;  % Wrap theta_a (air heading)
 
+% Plot True State vs Nominal State
 figure;
 for i = 1:size(x_true, 2)
     subplot(size(x_true, 2), 1, i);
@@ -131,9 +128,9 @@ for i = 1:size(x_true, 2)
     
     hold off;  % Release the plot for next subplot operations
 end
+
 % Supertitle for all subplots
 sgtitle('True State vs Nominal State Trajectories Comparison', 'Interpreter', 'latex');
-
 
 % find total measurement vector
 y_true = get_Y_noise(x_true,v_k');
@@ -143,14 +140,14 @@ y_nom = get_Y(x_nominal);
 y_true(:, 1) = mod(y_true(:, 1) + pi, 2*pi) - pi;  % Wrap gamma_ag
 y_true(:, 3) = mod(y_true(:, 3) + pi, 2*pi) - pi;  % Wrap gamme_ga
 
+% Assuming y_true and y_nom are your matrices, each of size 1001x5
+y_true(:, 1) = wrapToPi(y_true(:, 1));  % Wrap the first column (angles) of y_true
+y_true(:, 3) = wrapToPi(y_true(:, 3));  % Wrap the third column (angles) of y_true
+
 y_nom(:, 1) = wrapToPi(y_nom(:, 1));    % Wrap the first column (angles) of y_nom
 y_nom(:, 3) = wrapToPi(y_nom(:, 3));    % Wrap the third column (angles) of y_nom
 
-% define ydata for testing
-% ydata = ydata;    % default uses given ydata from canvas
-ydata = y_true';
-dely = y_true - y_nom;
-
+% Plot Truth Model Measurements
 figure;
 for i = 1:size(y_true, 2)
     subplot(size(y_true, 2), 1, i);
@@ -184,121 +181,62 @@ end
 sgtitle('Truth Measurments vs. Time', 'Interpreter', 'latex');
 
 
-%%%%%%%
-% INITIALIZING EKF LOOP
-%%%%%%%
+%INITIALIZING FOR LKF LOOP
+%pretty sure this is what gamme looks like although not positive
+gamma = eye(size(x_true,2));
+omega_matrix = dt * gamma;
 
-%%%%%%%
-% want to use a batch estimator to warm start the EKF
+dely = y_true - y_nom;
+delx_plus = zeros(6,1001);
+delx_minus = zeros(6,1001);
+P_plus = zeros(6,6,1001);
+P_minus = zeros(6,6,1001);
+K = zeros(6,5,1001);
+
+% delx_plus(:,1) = zeros(6,1); %adjustable
+% P_plus(:,:,1) = zeros(6,6); %adjustable
+
+[del_x_0,P_plus_0] = get_init_conditions(dely,x_nominal,u_init,dt,Rtrue,10)
+
+delx_plus(:,1) = del_x_0; %adjustable
+P_plus(:,:,1) = P_plus_0; %adjustable
+
+Q_filter = Qtrue;
+%Compute jacobians at each time step from nominal trajectory
+for k = 1:1000 %k=1 represents t = 0
+    % Use CT jacobians to find A and B at t = t_k and nom[k]
+    A_nom_k = get_Abar(u_init, x_nominal(k, :)');
+    B_nom_k = get_Bbar(u_init, x_nominal(k, :)', L);
+    C_nom_k = get_Cbar(x_nominal(k+1, :)'); %need H_k+1 not H_k
+    
+    % Eulerized estimate of DT Jacobians
+    F_k = eye(6) + dt * A_nom_k;
+    G_k = dt * B_nom_k;
+    H_k_plus_1 = C_nom_k;%need H_k+1 not H_k
+    
+    %LINEAR KALMAN FILTER
+
+    %time update/prediction step for time k+1
+    delx_minus(:,k+1) = F_k * delx_plus(:,k) + G_k * [0,0,0,0]';
+    P_minus(:,:,k+1) = F_k*P_plus(:,:,k)*F_k' + omega_matrix*Qtrue*omega_matrix';
+
+    %measurement update/correction step for time k+1
+    K(:,:,k+1) = P_minus(:,:,k+1) * H_k_plus_1' * ...
+                 (H_k_plus_1 * P_minus(:,:,k+1) * H_k_plus_1' + Rtrue)^(-1);
+
+    %correctly handle difference in angles
+    y_diff = dely(k+1,:)' - H_k_plus_1 * delx_minus(:,k+1);
+    y_first_predict = H_k_plus_1 * delx_minus(:,k+1);
+    y_first_diff = wrappedAngleDiff(dely(k+1,1),y_first_predict())
+    delx_plus(:,k+1) = delx_minus(:,k+1) + K(:,:,k+1) * ...
+                        (dely(k+1,:)' - H_k_plus_1 * delx_minus(:,k+1) );
+    P_plus(:,:,k+1) = (eye(6) - K(:,:,k+1) * H_k_plus_1) * P_minus(:,:,k+1);
 
 
-
-% okay... I don't think this function works
-[del_x_0,P_plus_0] = get_init_conditions(dely,x_nominal,u_init,dt,Rtrue,10);
-
-% my function
-%[~, P_init] = warm_start(y_true', x_nominal, Rtrue);
-
-% human guess... doesn't result in good performance
-%P_init = 0.1 * diag([1, 1, 1, 1, 1, 1]);
-
-%%%%%%%
-% gonna try and tune Q in here
-% 0.6*Qtrue seems to perform the best
-%Qtrue = 0.6*Qtrue;
-%{
-Qtrue = [0.006, 0,      0,      0,      0,      0;
-         0,     0.0006, 0,      0,      0,      0;
-         0,     0,      0.0060, 0,      0,      0;
-         0,     0,      0,      0.0006, 0,      0;
-         0,     0,      0,      0,      0.0006, 0;
-         0,     0,      0,      0,      0,      0.0060];
-%%%%%%%
-%}
-
-%pretty sure this is what gamma looks like although not positive
-Gamma = eye(6);
-Omega = dt * Gamma;
-
-% set up CT nonlinear dynamics functions
-f = @(t, x) x_dotODE45(t, x, u_func, L); % for computing trajectory online
-
-%nick's experiment:
-x_min = x_init + del_x_0;
-x_plus = x_init + del_x_0;
-P_min = P_plus_0;
-P_plus = P_plus_0;
-
-% step 2: k = 0
-% x_min = x_init;
-% x_plus = x_init;
-% P_min = P_init;
-% P_plus = P_init;
-
-for k = 1:1000
-    % step 3: time update/prediction step for time k + 1
-    x_plus_k = x_plus(:, k);
-    [t, x_min_kplus1] = ode45(f, tvec(k:k+1), x_plus_k);
-    x_min(:, k + 1) = x_min_kplus1(end, :)';
-
-    A = get_Abar(u_init, x_plus(:, k));
-    F_k = eye(6) + dt * A;
-    P_min(:, :, k + 1) = F_k * P_plus(:, :, k) * F_k' + Omega * Qtrue * Omega';
-
-    % step 4: measurement update/correction step for k + 1
-    y_min = get_Y_k(x_min(:, k + 1));
-    H = get_Cbar(x_min(:, k + 1));
-    e_y = ydata(:, k + 1) - y_min;
-    K = P_min(:, :, k+1) * H' * inv(H * P_min(:, :, k+1) * H' + Rtrue);
-
-    x_plus(:, k + 1) = x_min(:, k + 1) + K * e_y;
-    P_plus(:, :, k + 1) = (eye(6) - K * H) * P_min(:, :, k+1);
 end
+% 
+% plot_state_graphs(delx_plus, P_plus, tvec);
+% 
+% plot_total_state_graphs(x_nominal, delx_plus, P_plus, tvec);
 
-x_plus = x_plus';
-t = dt*(0:1000);
-
-% plot estimated state results
-% Wrap the angles theta_g (x_total(3,:)) and theta_a (x_total(6,:)) to [-pi, pi]
-x_plus(:, 3) = mod(x_plus(:, 3) + pi, 2*pi) - pi;  % Wrap theta_g (ground heading)
-x_plus(:, 6) = mod(x_plus(:, 6) + pi, 2*pi) - pi;  % Wrap theta_a (air heading)
-x_true(:, 3) = mod(x_true(:, 3) + pi, 2*pi) - pi;  % Wrap theta_g (ground heading)
-x_true(:, 6) = mod(x_true(:, 6) + pi, 2*pi) - pi;  % Wrap theta_a (air heading)
-
-% plots with 2sigma error bounds
-%EKF_total_state_graphs(x_true, x_plus', P_plus, tvec)
-plot_states_and_errorsEKF(x_plus,x_true,P_plus,tvec)
-%{
-% Plot results
-figure;
-for i = 1:size(x_plus, 2)
-    subplot(size(x_plus, 2), 1, i);
-    plot(t, x_plus(:, i), t, x_true(:, i), 'LineWidth', 1.5);
-    grid on;
-
-    % Adjust titles and labels based on the state variables
-    if i == 1
-        title('$\xi$ (Easting of ground)', 'Interpreter', 'latex');
-        ylabel('$\xi$ (m)', 'Interpreter', 'latex');
-    elseif i == 2
-        title('$\eta$ (Northing of ground)', 'Interpreter', 'latex');
-        ylabel('$\eta$ (m)', 'Interpreter', 'latex');
-    elseif i == 3
-        title('$\theta$ (Heading of ground)', 'Interpreter', 'latex');
-        ylabel('$\theta$ (rad)', 'Interpreter', 'latex');
-    elseif i == 4
-        title('$\xi$ (Easting of air)', 'Interpreter', 'latex');
-        ylabel('$\xi$ (m)', 'Interpreter', 'latex');
-    elseif i == 5
-        title('$\eta$ (Northing of air)', 'Interpreter', 'latex');
-        ylabel('$\eta$ (m)', 'Interpreter', 'latex');
-    elseif i == 6
-        title('$\theta$ (Heading of air)', 'Interpreter', 'latex');
-        ylabel('$\theta$ (rad)', 'Interpreter', 'latex');
-    end
-    xlabel('Time (s)', 'Interpreter', 'latex');
-    legend('Estimated States', 'Ground Truth States')
-end
-legend('Estimated States', 'Ground Truth States')
-sgtitle('EKF Estimated States vs. Time', 'Interpreter', 'latex');
-%}
+plot_states_and_errors(delx_plus,x_nominal,x_true,P_plus,tvec);

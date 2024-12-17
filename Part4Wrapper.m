@@ -223,8 +223,22 @@ for k = 1:1000 %k=1 represents t = 0
     %measurement update/correction step for time k+1
     K(:,:,k+1) = P_minus(:,:,k+1) * H_k_plus_1' * ...
                  (H_k_plus_1 * P_minus(:,:,k+1) * H_k_plus_1' + Rtrue)^(-1);
+
+    % Calculate the predicted measurements from the Kalman filter prediction
+    dely_predict = H_k_plus_1 * delx_minus(:,k+1);
+
+    % Compute initial difference vector including handling for non-angle components
+    dely_diff = dely(k+1,:)' - dely_predict;
+
+    % Correct angle differences due to wrapping issues
+    dely_diff(1) = wrappedAngleDiff(dely(k+1,1), dely_predict(1));
+    dely_diff(3) = wrappedAngleDiff(dely(k+1,3), dely_predict(3));
+
+
+    % delx_plus(:,k+1) = delx_minus(:,k+1) + K(:,:,k+1) * ...
+    %                     (dely(k+1,:)' - H_k_plus_1 * delx_minus(:,k+1) );
     delx_plus(:,k+1) = delx_minus(:,k+1) + K(:,:,k+1) * ...
-                        (dely(k+1,:)' - H_k_plus_1 * delx_minus(:,k+1) );
+                        (dely_diff);
     P_plus(:,:,k+1) = (eye(6) - K(:,:,k+1) * H_k_plus_1) * P_minus(:,:,k+1);
 
 

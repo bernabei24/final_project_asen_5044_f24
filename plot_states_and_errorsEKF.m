@@ -1,12 +1,9 @@
-function plot_states_and_errors(delx_plus, x_nominal, x_true, P_plus, tvec)
+function plot_states_and_errorsEKF(total_state, x_true, P_plus, tvec)
     % Calculate the total state by adding the deviations from the nominal trajectory to the nominal state
-    total_state = x_nominal + delx_plus';  % Transpose delx_plus to match dimensions of x_nominal
     
     % Calculate the errors for each state
     state_errors = total_state - x_true;
     
-    state_errors(:,3) = wrappedAngleDiff(total_state(:,3), x_true(:,3));
-    state_errors(:,6) = wrappedAngleDiff(total_state(:,6), x_true(:,6));
     % Initialize the figure
     figure;
     
