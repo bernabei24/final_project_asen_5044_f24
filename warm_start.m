@@ -37,6 +37,6 @@ function [delx_0, P_0] = warm_start(dely, x_nom, delu, L, R)
 
     P_0 = (STM' * R^(-1) * STM)^(-1)
     delx_0 = STM\dely
-
+  
 end
 

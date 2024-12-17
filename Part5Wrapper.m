@@ -253,6 +253,10 @@ for k = 1:1000
     y_min = get_Y_k(x_min(:, k + 1));
     H = get_Cbar(x_min(:, k + 1));
     e_y = ydata(:, k + 1) - y_min;
+    % Correct for wrapping issues in the first and third measurements (states)
+    e_y(1, 1) = wrappedAngleDiff(ydata(1, k+1), y_min(1, 1));
+    e_y(3, 1) = wrappedAngleDiff(ydata(3, k+1), y_min(3, 1));
+
     K = P_min(:, :, k+1) * H' * inv(H * P_min(:, :, k+1) * H' + Rtrue);
 
     x_plus(:, k + 1) = x_min(:, k + 1) + K * e_y;
