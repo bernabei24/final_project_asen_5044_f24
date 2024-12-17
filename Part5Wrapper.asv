@@ -99,27 +99,23 @@ ydata = y_true';
 % want to use a batch estimator to warm start the EKF
 
 % okay... I don't think this function works
-[x_init, P_init] = get_init_conditions(y_true,x_nominal,u_init,dt,Rtrue,10)
+%[x_init, P_init] = get_init_conditions(y_true,x_nominal,u_init,dt,Rtrue,10);
 
 % my function
 %[~, P_init] = warm_start(y_true', x_nominal, Rtrue);
 
 % human guess... doesn't result in good performance
-%P_init = 0.1 * diag([1, 1, 1, 1, 1, 1]);
+P_init = 0.1 * diag([1, 1, 1, 1, 1, 1]);
 
 %%%%%%%
 % gonna try and tune Q in here
+Qtrue
 % 0.6*Qtrue seems to perform the best
-%Qtrue = 0.6*Qtrue;
-%{
-Qtrue = [0.006, 0,      0,      0,      0,      0;
-         0,     0.0006, 0,      0,      0,      0;
-         0,     0,      0.0060, 0,      0,      0;
-         0,     0,      0,      0.0006, 0,      0;
-         0,     0,      0,      0,      0.0006, 0;
-         0,     0,      0,      0,      0,      0.0060];
+Qtrue = 0.6*Qtrue;
+Qtrue(1, 1) = 1.1*Qtrue(1, 1);
+
+Qtrue
 %%%%%%%
-%}
 
 %pretty sure this is what gamma looks like although not positive
 Gamma = eye(6);

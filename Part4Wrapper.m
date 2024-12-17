@@ -196,7 +196,7 @@ K = zeros(6,5,1001);
 % delx_plus(:,1) = zeros(6,1); %adjustable
 % P_plus(:,:,1) = zeros(6,6); %adjustable
 
-[del_x_0,P_plus_0] = get_init_conditions(dely,x_nominal,u_init,dt,Rtrue,10);
+[del_x_0,P_plus_0] = get_init_conditions(dely,x_nominal,u_init,dt,Rtrue,10)
 
 delx_plus(:,1) = del_x_0; %adjustable
 P_plus(:,:,1) = P_plus_0; %adjustable

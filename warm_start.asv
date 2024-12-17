@@ -1,0 +1,12 @@
+function [x_0, P_0] = warm_start(y, x_nom, u_init, dt, R)
+    %y — measurements to compute x_0 (5x10)
+    %x_nom — needed to compute F matrixes and H matrixes
+    %u_init — needed to compute F matrixes and H matrixes
+    %dt — needed to compute F matrixes and H matrixes
+    %R — used to create Raug matrix
+
+    y = reshape(y, [50, 1]);
+    R = blkdiag()
+
+end
+
