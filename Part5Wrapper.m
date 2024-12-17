@@ -152,8 +152,6 @@ y_nom_plot(:, 3) = wrapToPi(y_nom(:, 3));    % Wrap the third column (angles) of
 
 % define ydata for testing
 % ydata = ydata;    % default uses given ydata from canvas
-ydata = y_true';
-dely = y_true - y_nom;
 
 figure;
 for i = 1:size(y_true, 2)
@@ -198,20 +196,26 @@ sgtitle('Truth Measurments vs. Time', 'Interpreter', 'latex');
 
 
 % okay... I don't think this function works
-%[del_x_0,P_plus_0] = get_init_conditions(del_y,x_nominal,u_init,dt,Rtrue,10);
+ydata = y_true';
+dely = y_true - y_nom;
+
+[del_x_0,P_plus_0] = get_init_conditions(dely,x_nominal,u_init,dt,Rtrue,10);
+%nick's experiment:
+x_init = x_init + del_x_0
+P_init = P_plus_0
 
 % my function
-delu = [0, 0, 0, 0]';
-%[delx_0, P_init] = warm_start(dely', x_nominal, delu, L, Rtrue);
+%delu = [0, 0, 0, 0]';
+%[~, P_init] = warm_start(dely', x_nominal, delu, L, Rtrue);
 %x_init = x_init + delx_0;
 
 % human guess... doesn't result in good performance
-P_init = 0.1 * diag([1, 1, 1, 1, 1, 1]);
+%P_init = 0.1 * diag([1, 1, 1, 1, 1, 1]);
 
 %%%%%%%
 % gonna try and tune Q in here
 % 0.6*Qtrue seems to perform the best
-%Qtrue = 0.6*Qtrue;
+Qtrue = 0.6*Qtrue;
 %{
 Qtrue = [0.006, 0,      0,      0,      0,      0;
          0,     0.0006, 0,      0,      0,      0;
@@ -228,12 +232,6 @@ Omega = dt * Gamma;
 
 % set up CT nonlinear dynamics functions
 f = @(t, x) x_dotODE45(t, x, u_func, L); % for computing trajectory online
-
-%nick's experiment:
-% x_min = x_init + del_x_0;
-% x_plus = x_init + del_x_0;
-% P_min = P_plus_0;
-% P_plus = P_plus_0;
 
 % step 2: k = 0
 x_min = x_init;
