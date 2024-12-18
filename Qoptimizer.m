@@ -41,7 +41,7 @@ Q_filter = (Q_filter + Q_filter') / 2;
 
 Qtrue =diag([0.001, 0.001, 0.01, 0.001, 0.001, 0.01]);
 Rtrue = diag([0.0225, 64, 0.04, 36, 36]);
-tvec = 0:0.1:1000;
+tvec = 0:0.1:100;
 total_rmse = 0;
 for seed = 1:10
     L = 0.5; %m
