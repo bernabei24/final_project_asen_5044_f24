@@ -7,6 +7,7 @@
 
 clear;
 clc;
+close all;
 load("cooplocalization_finalproj_KFdata.mat")
 
 %initial conditions
@@ -80,6 +81,8 @@ x_nominal(:, 6) = mod(x_nominal(:, 6) + pi, 2*pi) - pi;  % Wrap theta_a (air hea
 
 % find total measurement vector
 y_true = get_Y_noise(x_true,v_k');
+y_true(:, 1) = mod(y_true(:, 1) + pi, 2*pi) - pi;  % Wrap gamma_ag
+y_true(:, 3) = mod(y_true(:, 3) + pi, 2*pi) - pi;  % Wrap gamme_ga
 y_nom = get_Y(x_nominal);
 
 % define ydata for testing
@@ -87,25 +90,12 @@ y_nom = get_Y(x_nominal);
 ydata = y_true';
 
 %%%%%%%
-
 % INITIALIZING EKF LOOP
-
-%%%%%%%
-
-% want to use a batch estimator to warm start the EKF
-% okay... I don't think this function works
-%[x_init, P_init] = get_init_conditions(y_true,x_nominal,u_init,dt,Rtrue,10);
-% my function
-%[~, P_init] = warm_start(y_true', x_nominal, u_init, L, Rtrue);
-% human guess... doesn't result in good performance
 P_init = 0.1 * diag([1, 1, 1, 1, 1, 1]);
-
 %%%%%%%
-
 % gonna try and tune Q in here
 % 0.6*Qtrue seems to perform the best
-Qtrue = 0.6*Qtrue;
-
+%Qtrue = 0.6*Qtrue;
 %%%%%%%
 
 %pretty sure this is what gamma looks like although not positive
