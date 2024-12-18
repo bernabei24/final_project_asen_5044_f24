@@ -186,7 +186,16 @@ sgtitle('Truth Measurments vs. Time', 'Interpreter', 'latex');
 gamma = eye(size(x_true,2));
 omega_matrix = dt * gamma;
 
+%for testing on real data else, comment out
+% y_true(2:end,:) = ydata(:,2:end)';
+% y_true(1,:) = y_nom(1,:);
+
 dely = y_true - y_nom;
+
+% Apply wrapToPi only to the 1st and 3rd columns of dely
+dely(:, 1) = wrapToPi(dely(:, 1));  % Wrap the 1st column
+dely(:, 3) = wrapToPi(dely(:, 3));  % Wrap the 3rd column
+
 delx_plus = zeros(6,1001);
 delx_minus = zeros(6,1001);
 P_plus = zeros(6,6,1001);
@@ -200,8 +209,10 @@ K = zeros(6,5,1001);
 
 delx_plus(:,1) = del_x_0; %adjustable
 P_plus(:,:,1) = P_plus_0; %adjustable
+dely_diff = zeros(5,1001);
+dely_predict = zeros(5,1001);
 
-Q_filter = Qtrue;
+Q_filter = 1 * Qtrue;
 %Compute jacobians at each time step from nominal trajectory
 for k = 1:1000 %k=1 represents t = 0
     % Use CT jacobians to find A and B at t = t_k and nom[k]
@@ -225,20 +236,20 @@ for k = 1:1000 %k=1 represents t = 0
                  (H_k_plus_1 * P_minus(:,:,k+1) * H_k_plus_1' + Rtrue)^(-1);
 
     % Calculate the predicted measurements from the Kalman filter prediction
-    dely_predict = H_k_plus_1 * delx_minus(:,k+1);
+    dely_predict(:,k+1) = H_k_plus_1 * delx_minus(:,k+1);
 
     % Compute initial difference vector including handling for non-angle components
-    dely_diff = dely(k+1,:)' - dely_predict;
+    dely_diff(:,k+1) = dely(k+1,:)' - dely_predict(:,k+1);
 
     % Correct angle differences due to wrapping issues
-    dely_diff(1) = wrappedAngleDiff(dely(k+1,1), dely_predict(1));
-    dely_diff(3) = wrappedAngleDiff(dely(k+1,3), dely_predict(3));
+    dely_diff(1,k+1) = wrappedAngleDiff(dely(k+1,1), dely_predict(1,k+1));
+    dely_diff(3,k+1) = wrappedAngleDiff(dely(k+1,3), dely_predict(3,k+1));
 
 
     % delx_plus(:,k+1) = delx_minus(:,k+1) + K(:,:,k+1) * ...
     %                     (dely(k+1,:)' - H_k_plus_1 * delx_minus(:,k+1) );
     delx_plus(:,k+1) = delx_minus(:,k+1) + K(:,:,k+1) * ...
-                        (dely_diff);
+                        (dely_diff(:,k+1));
     P_plus(:,:,k+1) = (eye(6) - K(:,:,k+1) * H_k_plus_1) * P_minus(:,:,k+1);
 
 
@@ -247,5 +258,7 @@ end
 % plot_state_graphs(delx_plus, P_plus, tvec);
 % 
 % plot_total_state_graphs(x_nominal, delx_plus, P_plus, tvec);
+plotInnovationsAndMeasurements(dely_diff, dely, dely_predict);
+
 
 plot_states_and_errors(delx_plus,x_nominal,x_true,P_plus,tvec);

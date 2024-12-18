@@ -138,17 +138,27 @@ sgtitle('True State vs Nominal State Trajectories Comparison', 'Interpreter', 'l
 
 
 % find total measurement vector
-y_true = get_Y_noise(x_true,v_k');
+y_true = get_Y_noise(x_plot,v_k');
 y_nom = get_Y(x_nominal);
 
 % Wrap the angles gamma_ag and gamma_ga to [-pi, pi]
 y_true_plot = y_true;
 y_nom_plot = y_nom;
+
 y_true_plot(:, 1) = mod(y_true(:, 1) + pi, 2*pi) - pi;  % Wrap gamma_ag
 y_true_plot(:, 3) = mod(y_true(:, 3) + pi, 2*pi) - pi;  % Wrap gamme_ga
 
 y_nom_plot(:, 1) = wrapToPi(y_nom(:, 1));    % Wrap the first column (angles) of y_nom
 y_nom_plot(:, 3) = wrapToPi(y_nom(:, 3));    % Wrap the third column (angles) of y_nom
+
+% Wrapping angles in y_true
+y_true(:, 1) = wrapToPi(y_true(:, 1));  % Wrap the first column (angles) of y_true
+y_true(:, 3) = wrapToPi(y_true(:, 3));  % Wrap the third column (angles) of y_true
+
+% Wrapping angles in y_nom
+y_nom(:, 1) = wrapToPi(y_nom(:, 1));    % Wrap the first column (angles) of y_nom
+y_nom(:, 3) = wrapToPi(y_nom(:, 3));    % Wrap the third column (angles) of y_nom
+
 
 % define ydata for testing
 % ydata = ydata;    % default uses given ydata from canvas
@@ -215,14 +225,14 @@ P_init = P_plus_0
 %%%%%%%
 % gonna try and tune Q in here
 % 0.6*Qtrue seems to perform the best
-Qtrue = 0.6*Qtrue;
-%{
-Qtrue = [0.006, 0,      0,      0,      0,      0;
-         0,     0.0006, 0,      0,      0,      0;
-         0,     0,      0.0060, 0,      0,      0;
-         0,     0,      0,      0.0006, 0,      0;
-         0,     0,      0,      0,      0.0006, 0;
-         0,     0,      0,      0,      0,      0.0060];
+Qused = 1*Qtrue;
+
+% Qtrue = [0.006, 0,      0,      0,      0,      0;
+%          0,     0.0006, 0,      0,      0,      0;
+%          0,     0,      0.0060, 0,      0,      0;
+%          0,     0,      0,      0.0006, 0,      0;
+%          0,     0,      0,      0,      0.0006, 0;
+%          0,     0,      0,      0,      0,      0.0060];
 %%%%%%%
 %}
 
@@ -239,6 +249,9 @@ x_plus = x_init;
 P_min = P_init;
 P_plus = P_init;
 
+e_y = zeros(5,1001);
+y_min = zeros(5,1001);
+
 for k = 1:1000
     % step 3: time update/prediction step for time k + 1
     x_plus_k = x_plus(:, k);
@@ -247,19 +260,24 @@ for k = 1:1000
 
     A = get_Abar(u_init, x_plus(:, k));
     F_k = eye(6) + dt * A;
-    P_min(:, :, k + 1) = F_k * P_plus(:, :, k) * F_k' + Omega * Qtrue * Omega';
+    P_min(:, :, k + 1) = F_k * P_plus(:, :, k) * F_k' + Omega * Qused * Omega';
 
     % step 4: measurement update/correction step for k + 1
-    y_min = get_Y_k(x_min(:, k + 1));
+    y_min(:,k+1) = get_Y_k(x_min(:, k + 1));
     H = get_Cbar(x_min(:, k + 1));
-    e_y = ydata(:, k + 1) - y_min;
+
+    
+    y_min(1, k+1) = wrapToPi(y_min(1, k+1));  % Wrap the 1st row, k+1 column
+    y_min(3, k+1) = wrapToPi(y_min(3, k+1));  % Wrap the 3rd row, k+1 column
+
+    e_y(:,k+1) = ydata(:, k + 1) - y_min(:,k+1);
     % Correct for wrapping issues in the first and third measurements (states)
-    e_y(1, 1) = wrappedAngleDiff(ydata(1, k+1), y_min(1, 1));
-    e_y(3, 1) = wrappedAngleDiff(ydata(3, k+1), y_min(3, 1));
+    e_y(1, k+1) = wrappedAngleDiff(ydata(1, k+1), y_min(1, k+1));
+    e_y(3, k+1) = wrappedAngleDiff(ydata(3, k+1), y_min(3, k+1));
 
-    K = P_min(:, :, k+1) * H' * inv(H * P_min(:, :, k+1) * H' + Rtrue);
+    K = P_min(:, :, k+1) * H' / (H * P_min(:, :, k+1) * H' + Rtrue);
 
-    x_plus(:, k + 1) = x_min(:, k + 1) + K * e_y;
+    x_plus(:, k + 1) = x_min(:, k + 1) + K * e_y(:,k+1);
     P_plus(:, :, k + 1) = (eye(6) - K * H) * P_min(:, :, k+1);
 end
 
@@ -275,4 +293,7 @@ x_true(:, 6) = mod(x_true(:, 6) + pi, 2*pi) - pi;  % Wrap theta_a (air heading)
 
 % plots with 2sigma error bounds
 %EKF_total_state_graphs(x_true, x_plus', P_plus, tvec)
+
+plotInnovationsAndMeasurements(e_y, ydata', y_min);
+
 plot_states_and_errorsEKF(x_plus,x_true,P_plus,tvec)
